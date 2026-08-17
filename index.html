@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vote of Confidence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%23164a3a' width='64' height='64' rx='10'/%3E%3Cpath fill='%23d4af37' d='M18 12h28v6H18zm4 8h20v4H22zm-2 8h8v24h-8zm18 0h8v24h-8zm-10 6h8v18h-8z'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <div class="app">
+      <header class="masthead">
+        <svg class="portcullis" viewBox="0 0 64 64" aria-hidden="true">
+          <rect x="8" y="8" width="48" height="48" rx="6" fill="#0d2a22" stroke="#d4af37" stroke-width="2" />
+          <path fill="#d4af37" d="M18 14h28v5H18zm3 7h22v3H21z" />
+          <rect x="20" y="26" width="6" height="22" fill="#d4af37" />
+          <rect x="29" y="30" width="6" height="18" fill="#d4af37" />
+          <rect x="38" y="26" width="6" height="22" fill="#d4af37" />
+        </svg>
+        <div>
+          <h1>Vote of Confidence</h1>
+          <p>A sitting of the House of Commons</p>
+        </div>
+      </header>
+
+      <section id="screen-start" class="screen panel panel-parchment">
+        <p class="lede">Be the Prime Minister. Survive the vote of confidence.</p>
+        <div class="instructions">
+          <p>
+            You have three turns to put a policy to the House. This is usually a
+            hung or knife-edge parliament: pick your own party’s median and you
+            will likely lose rebels, and still need votes from elsewhere.
+          </p>
+          <p>
+            Your Chief Whip will estimate the division, name MPs who are on the
+            fence, and tell you how many of your own backbenchers are expected
+            to rebel. You have three ministerial posts to offer for the whole
+            sitting — spend them on the ambitious waverers in your party, or
+            save them.
+          </p>
+          <p>
+            At the end of the third round (or earlier if you divide), 250 ayes
+            carry the confidence motion. The House is generated afresh each
+            game.
+          </p>
+        </div>
+        <div class="actions">
+          <button id="btn-start" type="button">Start</button>
+        </div>
+      </section>
+
+      <section id="screen-info" class="screen panel" hidden>
+        <div id="info-dashboard"></div>
+        <div class="actions">
+          <button id="btn-propose" type="button">Propose a policy</button>
+        </div>
+      </section>
+
+      <section id="screen-proposal" class="screen panel" hidden>
+        <div id="proposal-dashboard"></div>
+        <div class="policy-block">
+          <p class="policy-copy">Move the slider to select your policy.</p>
+          <div class="slider-row">
+            <span>Left</span>
+            <input id="policy-slider" type="range" min="0" max="100" value="50" />
+            <span>Right</span>
+          </div>
+          <div class="policy-pins" id="policy-pins"></div>
+          <p class="policy-value" id="policy-value">50</p>
+          <div class="lean-grid" id="proposal-lean"></div>
+        </div>
+        <div class="actions">
+          <button id="proposal-button" type="button">Submit an initial policy proposal</button>
+        </div>
+      </section>
+
+      <section id="screen-jobs" class="screen panel" hidden>
+        <div id="jobs-dashboard"></div>
+        <div class="whip-box">
+          <div class="whip-number">
+            <span id="whip-expected">0</span>
+            <small>predicted ayes</small>
+          </div>
+          <div>
+            <div class="majority-bar" aria-hidden="true">
+              <div class="majority-fill" id="majority-fill"></div>
+              <div class="majority-mark"></div>
+            </div>
+            <p class="whip-note" id="whip-note"></p>
+            <div class="whip-stats" id="whip-stats"></div>
+          </div>
+        </div>
+        <div id="mp-list" class="mp-list"></div>
+        <div class="actions">
+          <button id="next-prop" class="secondary" type="button">
+            Confirm patronage and table a revised policy
+          </button>
+          <button id="go-vote" type="button">
+            Confirm patronage and divide the House on this policy
+          </button>
+        </div>
+      </section>
+
+      <section id="screen-result" class="screen panel result" hidden>
+        <h2 id="result-heading"></h2>
+        <p class="verdict" id="result-tally"></p>
+        <div class="tally">
+          <div class="tally-card aye">
+            <span>Ayes, to the right</span>
+            <strong id="aye-count">0</strong>
+          </div>
+          <div class="tally-card no">
+            <span>Noes, to the left</span>
+            <strong id="no-count">0</strong>
+          </div>
+        </div>
+        <p class="verdict" id="result-copy"></p>
+        <div class="breakdown" id="result-breakdown"></div>
+        <div class="actions">
+          <button id="btn-reset" type="button">Reset</button>
+        </div>
+      </section>
+
+      <p class="footer-note">Order, order. 499 members will divide, and 250 ayes carry the House.</p>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
