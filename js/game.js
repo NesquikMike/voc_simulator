@@ -52,47 +52,77 @@
     {
       paper: "Westmonster",
       dirt: false,
-      text: "{name} leaks the PM's WhatsApps: 'wet lettuce', 'stitch-up', and a peerage offered to keep {name} quiet. It is not quiet.",
+      text: "Messages seen by this paper: the PM calls a colleague 'wet lettuce', plots a 'stitch-up', and offers a peerage 'to keep this quiet'. It is not quiet.",
     },
     {
       paper: "The Whisper",
       dirt: true,
-      text: "Which Prime Minister was seen leaving the Albrion Grand with an NHS lobbyist and one ministerial pass? {name} has the receipts. And the room number.",
+      text: "Which Prime Minister was seen leaving the Albrion Grand with an NHS lobbyist and one ministerial pass? Sources have the receipts. And the room number.",
     },
     {
       paper: "Sunday Gazette",
       dirt: true,
-      text: "EXCLUSIVE: {name} says the PM was 'comforted' by a lobby correspondent after Questions. Repeatedly. The Crown House flatmate has been told.",
+      text: "EXCLUSIVE: the PM was 'comforted' by a lobby correspondent after Questions. Repeatedly. Friends of the Crown House flatmate say they have been told.",
     },
     {
       paper: "The Herald",
       dirt: false,
-      text: "{name} briefs that the PM's 'fact-finding' was a hip flask, a donor, and no agenda — all on the departmental Amex.",
+      text: "A senior figure briefs that the PM's 'fact-finding' was a hip flask, a donor, and no agenda — all on the departmental Amex.",
     },
     {
       paper: "Evening Standard-Bearer",
       dirt: true,
-      text: "PM's 'special adviser' — 26, no known policy brief — on £140k after {name} was sacked. {name} calls it 'the Millmead job'. Sleaze watchdog circling.",
+      text: "PM's 'special adviser' — 26, no known policy brief — on £140k after a midnight reshuffle. Allies call it 'the Millmead job'. Sleaze watchdog circling.",
     },
     {
       paper: "The Watchman",
       dirt: false,
-      text: "{name} tells the lobby the PM 'couldn't organise a drink in a brewery' and is 'finished by Thursday'. Then names the intern who fetched the drink.",
+      text: "Sources close to Cabinet: the PM 'couldn't organise a drink in a brewery' and is 'finished by Thursday'. They then named the intern who fetched the drink.",
     },
     {
       paper: "Clarion on Sunday",
       dirt: true,
-      text: "Second home, second family? {name} points the Clarion at the PM's 'late red boxes': a red door in Millmead and very little paperwork.",
+      text: "Second home, second family? Late red boxes, a red door in Millmead, and very little paperwork — according to documents passed to this newspaper.",
     },
     {
       paper: "The Dispatch",
       dirt: true,
-      text: "Conference afterparty: the PM, a junior whip, and a broom cupboard. {name} was not invited. {name} has the photos.",
+      text: "Conference afterparty: the PM, a junior whip, and a broom cupboard. Photographs have been seen by this paper. Nobody is naming the photographer.",
     },
     {
       paper: "National Courier",
       dirt: false,
-      text: "{name} says the PM threw them under a bus to bury a 'bribe to the backbenches'. The bus, they add, was a ministerial Jaguar with the PM in the back.",
+      text: "Allies of a sacked minister say the PM threw them under a bus to bury a 'bribe to the backbenches'. The bus, they add, was a ministerial Jaguar with the PM in the back.",
+    },
+    {
+      paper: "The Sketch",
+      dirt: false,
+      text: "A Cabinet source: the PM asked whether the NHS was 'the one with the boats'. Officials said no. The PM wrote 'boats??' on the settlement and underlined it. Twice.",
+    },
+    {
+      paper: "First Edition",
+      dirt: false,
+      text: "LEAK: a voicemail passed to the lobby — the PM sacking a minister, then pocket-dialling for six minutes of a kettle, heavy breathing, and one very clear 'oh God'.",
+    },
+    {
+      paper: "The Albrion Argus",
+      dirt: true,
+      text: "The PM's red box contained extra-strong mints, a hotel keycard, and a lipstick note: 'Don't be late this time.' A photocopy is in circulation. The mints were not extra-strong enough.",
+    },
+    {
+      paper: "Sunday Sentinel",
+      dirt: true,
+      text: "PM's 'constituency surgery' was a hot tub in Millmead, two special advisers, and House champagne marked 'visiting dignitaries'. The booking, seen by this paper: 'listening exercise'.",
+    },
+    {
+      paper: "The Order Paper",
+      dirt: false,
+      text: "The PM's whipping spreadsheet, circulated anonymously. It is a family calendar. Thursday: 'VOTES??'. Saturday: 'dentist (maybe)'. The Chief Whip is listed as 'mum?'.",
+    },
+    {
+      paper: "Lobby Extra",
+      dirt: true,
+      text: "EXCLUSIVE: the PM's dating profile is called HungParliament. Bio: 'looking for a majority'. Three matches were journalists. None of them swiped right.",
     },
   ];
 
