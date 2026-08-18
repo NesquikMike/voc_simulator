@@ -1,22 +1,34 @@
 (function () {
-  const $ = (id) => document.getElementById(id);
+  const $ = function (id) {
+    return document.getElementById(id);
+  };
 
   const screens = {
     start: $("screen-start"),
     info: $("screen-info"),
     proposal: $("screen-proposal"),
     jobs: $("screen-jobs"),
+    reshuffle: $("screen-reshuffle"),
     result: $("screen-result"),
   };
 
   let loop = 0;
   let currentProp = 50;
   let fenceMps = [];
+  let selectedMp = null;
+  let selectedPostId = null;
+  let showingAllMps = false;
+  let cabinetOpen = false;
+  let backbenchersOpen = false;
+  const WHIP_LIST_SHORT = 5;
 
   function showScreen(name) {
     Object.keys(screens).forEach(function (key) {
       screens[key].hidden = key !== name;
     });
+    window.scrollTo(0, 0);
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
   }
 
   function numberLine(value) {
@@ -41,14 +53,99 @@
     return Math.max(0, VocGame.MAJORITY - (VocGame.getGovernment().numMps + 1));
   }
 
-  function postsLabel() {
-    const left = VocGame.getPostsRemaining();
+  function popularityChip() {
     return (
-      left +
-      " ministerial post" +
-      (left === 1 ? "" : "s") +
-      " left"
+      '<span class="posts-chip">PM standing ' +
+      VocGame.getPmPopularity() +
+      "</span>"
     );
+  }
+
+  function offerChip() {
+    return VocGame.hasOfferedThisTurn()
+      ? '<span class="posts-chip">Reshuffle used this turn</span>'
+      : '<span class="posts-chip">Reshuffle available</span>';
+  }
+
+  function renderCabinetTable() {
+    const rows = VocGame.getCabinet()
+      .map(function (row) {
+        const mp = row.mp;
+        const post = row.post;
+        if (!mp) {
+          return (
+            "<tr><th>" +
+            post.title +
+            '</th><td colspan="6">Vacant</td></tr>'
+          );
+        }
+        return (
+          "<tr>" +
+          "<th>" +
+          post.title +
+          "</th>" +
+          "<td>" +
+          mp.name +
+          "</td>" +
+          "<td>" +
+          VocGame.loyaltyLabel(mp.visibleLoyalty) +
+          "</td>" +
+          "<td>" +
+          VocGame.ambitionLabel(mp.visibleAmbition) +
+          "</td>" +
+          "<td>" +
+          VocGame.grievanceLabel(mp.visibleGrievance) +
+          "</td>" +
+          "<td>" +
+          VocGame.seniorityBand(mp.visibleSeniority) +
+          "</td>" +
+          "<td>" +
+          mp.factionName +
+          " <small>(" +
+          mp.factionSize +
+          ")</small></td>" +
+          "</tr>"
+        );
+      })
+      .join("");
+    return (
+      '<div class="cabinet-wrap">' +
+      '<div class="cabinet-head">' +
+      "<h3>Your cabinet</h3>" +
+      '<button type="button" class="reveal-btn cabinet-toggle">' +
+      (cabinetOpen ? "Hide cabinet" : "Show cabinet") +
+      "</button></div>" +
+      '<div class="cabinet-body"' +
+      (cabinetOpen ? "" : " hidden") +
+      ">" +
+      '<table class="cabinet-table"><thead><tr>' +
+      "<th>Post</th><th>Incumbent</th><th>Loyalty</th><th>Ambition</th><th>Grievance</th><th>Seniority</th><th>Faction</th>" +
+      "</tr></thead><tbody>" +
+      rows +
+      "</tbody></table></div></div>"
+    );
+  }
+
+  function bindCabinetToggle(root) {
+    if (!root) return;
+    const btn = root.querySelector(".cabinet-toggle");
+    const body = root.querySelector(".cabinet-body");
+    if (!btn || !body) return;
+    btn.addEventListener("click", function () {
+      cabinetOpen = !cabinetOpen;
+      body.hidden = !cabinetOpen;
+      btn.textContent = cabinetOpen ? "Hide cabinet" : "Show cabinet";
+    });
+  }
+
+  function syncBackbencherToggle() {
+    const btn = $("toggle-backbenchers");
+    const body = $("backbencher-body");
+    if (!btn || !body) return;
+    body.hidden = !backbenchersOpen;
+    btn.textContent = backbenchersOpen
+      ? "Hide backbenchers of interest"
+      : "Show backbenchers of interest";
   }
 
   function renderDashboard(mountIds, opts) {
@@ -78,9 +175,9 @@
           "</div><span>Turn " +
           (loop + 1) +
           " of 3</span>" +
-          '<span class="posts-chip">' +
-          postsLabel() +
-          "</span></div>"
+          popularityChip() +
+          offerChip() +
+          "</div>"
         : "") +
       '<p class="leader-banner">You are the Party Leader of the ' +
       government.name +
@@ -92,6 +189,7 @@
         .map(function (party) {
           const slug = VocGame.partySlug(party.name);
           const you = party === government ? " you" : "";
+          const median = party.getMedianMpPos();
           return (
             '<article class="party-card' +
             you +
@@ -112,18 +210,23 @@
             party.numMps +
             " MPs, and " +
             party.possessive +
-            " a median policy:</p>" +
-            '<div class="gauge-wrap"><div class="gauge-label"><span>Left</span><span>Right</span></div>' +
-            numberLine(party.getMedianMpPos()) +
+            " a median preferred settlement of " +
+            VocGame.formatBudget(median) +
+            ".</p>" +
+            '<div class="gauge-wrap"><div class="gauge-label"><span>Expansion</span><span>Cuts</span></div>' +
+            numberLine(median) +
             "</div></article>"
           );
         })
         .join("") +
       "</div>" +
+      (opts && opts.showCabinet ? renderCabinetTable() : "") +
       (opts && opts.showChamber === false ? "" : renderChamber());
 
     mountIds.forEach(function (id) {
-      $(id).innerHTML = html;
+      const el = $(id);
+      el.innerHTML = html;
+      bindCabinetToggle(el);
     });
   }
 
@@ -187,7 +290,12 @@
       return {
         party: party,
         slug: VocGame.partySlug(party.name),
-        ayes: party === gov ? forecast.government : party === opp ? forecast.opposition : forecast.third,
+        ayes:
+          party === gov
+            ? forecast.government
+            : party === opp
+              ? forecast.opposition
+              : forecast.third,
       };
     });
 
@@ -198,7 +306,7 @@
         return (
           '<article class="lean-card"><h3>' +
           row.party.name +
-          "</h3><div class=\"lean-track\"><div class=\"lean-fill " +
+          '</h3><div class="lean-track"><div class="lean-fill ' +
           row.slug +
           '" style="width:' +
           pct +
@@ -213,15 +321,20 @@
     const maxBin = Math.max.apply(null, bins.concat([1]));
     $("proposal-lean").insertAdjacentHTML(
       "beforeend",
-      '<article class="lean-card" style="grid-column:1/-1"><h3>Your backbenches</h3>' +
+      '<article class="lean-card" style="grid-column:1/-1"><h3>Your backbenches on the cuts</h3>' +
         '<div class="spectrum">' +
         bins
           .map(function (n) {
             return '<span style="height:' + Math.max(8, (n / maxBin) * 42) + 'px"></span>';
           })
           .join("") +
-        "</div><p>Left of your party sits on the left of this chart. A policy far from the bulge costs you rebels.</p></article>"
+        "</div><p>Expansion sits on the left of this chart, cuts on the right. A settlement far from the bulge costs you rebels.</p></article>"
     );
+  }
+
+  function updateBudgetReadout(value) {
+    $("policy-value").textContent =
+      VocGame.formatBudget(value) + " — " + VocGame.budgetBand(value);
   }
 
   function renderPolicyPins() {
@@ -248,18 +361,28 @@
     VocGame.startNewParliament();
     loop = 0;
     currentProp = VocGame.getGovernment().getMedianMpPos();
-    renderDashboard(["info-dashboard"], { showTurns: false });
+    selectedMp = null;
+    selectedPostId = null;
+    cabinetOpen = false;
+    backbenchersOpen = false;
+    renderDashboard(["info-dashboard"], { showTurns: false, showCabinet: true });
     showScreen("info");
   }
 
   function openProposal() {
-    renderDashboard(["proposal-dashboard"], { showTurns: true, showChamber: false });
+    VocGame.beginTurn();
+    selectedMp = null;
+    selectedPostId = null;
+    renderDashboard(["proposal-dashboard"], {
+      showTurns: true,
+      showChamber: false,
+    });
     $("policy-slider").value = String(currentProp);
-    $("policy-value").textContent = String(currentProp);
+    updateBudgetReadout(currentProp);
     $("proposal-button").textContent =
       loop === 2
-        ? "Submit your final policy proposal for the House to vote on"
-        : "Submit an initial policy proposal";
+        ? "Submit this settlement for the House to divide on"
+        : "Submit this settlement to the whips";
     renderPolicyPins();
     renderProposalAids(currentProp);
     showScreen("proposal");
@@ -273,13 +396,13 @@
 
   function whipHeadline(forecast) {
     if (forecast.shortfall > 15) {
-      return "We have not got the numbers. This motion will fall unless you move.";
+      return "We have not got the numbers. This settlement will fall unless you move.";
     }
     if (forecast.shortfall > 0) {
       return (
         "Short by " +
         forecast.shortfall +
-        ". Patronage or a shift toward the third party might still save you."
+        ". A reshuffle or a shift toward the third party might still save you."
       );
     }
     if (forecast.shortfall > -8) {
@@ -288,13 +411,60 @@
     return "Comfortable on paper — but a well-organised rebellion could yet spoil it.";
   }
 
-  function openJobs() {
-    currentProp = Number($("policy-slider").value);
-    renderDashboard(["jobs-dashboard"], { showTurns: true, showChamber: false });
+  function leakBand(p) {
+    if (p >= 0.55) return "high risk of a briefing";
+    if (p >= 0.3) return "some risk of a briefing";
+    return "unlikely to leak";
+  }
+
+  function renderOfferPreview() {
+    const box = $("offer-preview");
+    const btn = $("offer-btn");
+    if (VocGame.hasOfferedThisTurn()) {
+      box.innerHTML = "<p>You have already used this turn's reshuffle.</p>";
+      btn.disabled = true;
+      return;
+    }
+    if (!selectedMp || !selectedPostId) {
+      box.innerHTML =
+        "<p>Pick a government backbencher above, then choose a cabinet post.</p>";
+      btn.disabled = true;
+      return;
+    }
+    const post = VocGame.CABINET_POSTS.find(function (p) {
+      return p.id === selectedPostId;
+    });
+    const incumbent = VocGame.getCabinet().find(function (row) {
+      return row.post.id === selectedPostId;
+    }).mp;
+    const chance = VocGame.acceptanceChance(selectedMp, post);
+    box.innerHTML =
+      "<p>Offer <strong>" +
+      post.title +
+      "</strong> to <strong>" +
+      selectedMp.name +
+      "</strong> (" +
+      VocGame.chanceLabel(chance) +
+      ", " +
+      Math.round(chance * 100) +
+      "%). That means sacking " +
+      incumbent.name +
+      " of " +
+      incumbent.factionName +
+      " — " +
+      VocGame.grievanceLabel(incumbent.visibleGrievance) +
+      ", " +
+      leakBand(VocGame.leakChance(incumbent)) +
+      ").</p>";
+    btn.disabled = false;
+  }
+
+  function refreshWhipBox() {
     const forecast = VocGame.getWhipForecast(currentProp, 1);
     const majorityPct = Math.min(100, (forecast.total / VocGame.HOUSE_SIZE) * 100);
     $("whip-expected").textContent = String(forecast.total);
-    $("whip-expected").parentElement.className = "whip-number " + whipTone(forecast.total);
+    $("whip-expected").parentElement.className =
+      "whip-number " + whipTone(forecast.total);
     $("majority-fill").style.width = majorityPct + "%";
     $("whip-note").textContent = whipHeadline(forecast);
     $("whip-stats").innerHTML =
@@ -308,93 +478,280 @@
       forecast.third +
       "</span><span>Opposition " +
       forecast.opposition +
-      "</span><span>" +
-      postsLabel() +
-      "</span>";
+      "</span>" +
+      popularityChip();
 
-    fenceMps = VocGame.selWhipTargets(12, currentProp);
-    const government = VocGame.getGovernment();
-    const list = $("mp-list");
-    if (fenceMps.length === 0) {
-      list.innerHTML =
-        '<p class="empty-fence">No obvious waverers on this wording. Try moving the policy.</p>';
-    } else {
-      list.innerHTML =
-        '<div class="list-head"><span>Name</span><span>Party</span><span>Political position</span><span>Loyalty</span><span>Ambition</span><span>Ministerial post</span></div>' +
-        fenceMps
-          .map(function (mp, i) {
-            const canOffer =
-              mp.party === government &&
-              !mp.cabinetPost &&
-              VocGame.getPostsRemaining() > 0;
-            const offerHtml = canOffer
-              ? '<label class="offer"><input type="checkbox" name="minister-offer" value="' +
-                i +
-                '"> Offer a post</label>'
-              : '<p class="not-party">' +
-                (mp.cabinetPost ? "Already on the payroll" : "Not in your party") +
-                "</p>";
+    const outsiders = VocGame.getUnrepresentedFactions();
+    const factionEl = $("whip-factions");
+    if (outsiders.length) {
+      factionEl.innerHTML =
+        "No ministers from " +
+        outsiders
+          .map(function (f) {
             return (
-              '<article class="mp-card">' +
-              "<div><h3>" +
-              mp.name +
-              '</h3><p class="mp-meta">' +
-              mp.seat +
-              "</p></div>" +
-              "<div>" +
-              mp.party.name +
-              "</div>" +
-              '<div class="stat-col"><div class="gauge-label"><span>Left</span><span>Right</span></div>' +
-              numberLine(mp.visiblePosition) +
-              "</div>" +
-              '<div class="stat-col"><div class="gauge-label"><span>Disloyal</span><span>Loyal</span></div>' +
-              numberLine(mp.visibleLoyalty) +
-              "</div>" +
-              '<div class="stat-col"><div class="gauge-label"><span>Unambitious</span><span>Ambitious</span></div>' +
-              numberLine(mp.visibleAmbition) +
-              "</div>" +
-              offerHtml +
-              "</article>"
+              "<strong>" +
+              f.name +
+              "</strong> (" +
+              f.members.length +
+              ", led by " +
+              f.leader.name +
+              ")"
             );
           })
-          .join("");
-      list.querySelectorAll('input[name="minister-offer"]').forEach(function (box) {
-        box.addEventListener("change", syncPostCheckboxes);
-      });
-      syncPostCheckboxes();
+          .join("; ") +
+        ". Offer one of theirs a post and the grouping may come with them.";
+    } else {
+      factionEl.textContent = "";
     }
+
+    const rebels = VocGame.getRebelliousFactions(currentProp).slice(0, 3);
+    const rebelEl = $("whip-rebels");
+    if (rebels.length) {
+      rebelEl.innerHTML =
+        "Most likely to rebel: " +
+        rebels
+          .map(function (f) {
+            return (
+              "<strong>" +
+              f.name +
+              "</strong> (~" +
+              f.expectedRebels +
+              " of " +
+              f.size +
+              ", led by " +
+              f.leader.name +
+              ")"
+            );
+          })
+          .join("; ") +
+        ".";
+    } else {
+      rebelEl.textContent = "No grouping looks especially mutinous on this wording.";
+    }
+  }
+
+  function openJobs() {
+    currentProp = Number($("policy-slider").value);
+    renderDashboard(["jobs-dashboard"], { showTurns: true, showChamber: false });
+    refreshWhipBox();
+    $("cabinet-mount").innerHTML = renderCabinetTable();
+    bindCabinetToggle($("cabinet-mount"));
+
+    fenceMps = VocGame.selWhipTargets(16, currentProp);
+    showingAllMps = false;
+    syncBackbencherToggle();
+    renderMpList();
+
+    const postSelect = $("post-select");
+    postSelect.innerHTML =
+      '<option value="">Choose a cabinet post…</option>' +
+      VocGame.CABINET_POSTS.map(function (post) {
+        const holder = VocGame.getCabinet().find(function (row) {
+          return row.post.id === post.id;
+        }).mp;
+        return (
+          '<option value="' +
+          post.id +
+          '">' +
+          post.title +
+          " — currently " +
+          (holder ? holder.name : "vacant") +
+          " (" +
+          VocGame.prestigeLabel(post.prestige) +
+          ")</option>"
+        );
+      }).join("");
+    postSelect.value = selectedPostId || "";
+    postSelect.disabled = VocGame.hasOfferedThisTurn();
+    renderOfferPreview();
+    syncPatronageLock();
 
     $("next-prop").hidden = loop >= 2;
     showScreen("jobs");
   }
 
-  function syncPostCheckboxes() {
-    const boxes = Array.prototype.slice.call(
-      document.querySelectorAll('input[name="minister-offer"]')
-    );
-    const checked = boxes.filter(function (box) {
-      return box.checked;
-    }).length;
-    const left = VocGame.getPostsRemaining();
-    boxes.forEach(function (box) {
-      if (!box.checked) {
-        box.disabled = checked >= left;
-      }
-    });
+  function syncPatronageLock() {
+    const spent = VocGame.hasOfferedThisTurn();
+    const banner = $("patronage-spent");
+    const offer = document.querySelector("#screen-jobs .offer-panel");
+    if (banner) banner.hidden = !spent;
+    if (offer) offer.hidden = spent;
+    $("next-prop").classList.toggle("reveal-btn", spent && loop < 2);
   }
 
-  function applySelectedJobs() {
-    const selected = Array.prototype.slice.call(
-      document.querySelectorAll('input[name="minister-offer"]:checked')
-    );
-    const mps = selected.map(function (box) {
-      return fenceMps[Number(box.value)];
+  function renderMpList() {
+    const government = VocGame.getGovernment();
+    const list = $("mp-list");
+    const moreBtn = $("show-more-mps");
+    if (fenceMps.length === 0) {
+      list.innerHTML =
+        '<p class="empty-fence">No obvious waverers on this settlement. Try moving the cuts.</p>';
+      moreBtn.hidden = true;
+      return;
+    }
+    const visible = showingAllMps
+      ? fenceMps
+      : fenceMps.slice(0, WHIP_LIST_SHORT);
+    list.innerHTML =
+      '<div class="list-head"><span>Name</span><span>Party / faction</span><span>On the cuts</span><span>Loyalty</span><span>Ambition / presence</span><span>Offer</span></div>' +
+      visible
+        .map(function (mp, i) {
+          const canOffer = mp.party === government && !mp.cabinetPost;
+          const outsider = VocGame.getUnrepresentedFactions().some(function (f) {
+            return f.id === mp.factionId;
+          });
+          const chance = VocGame.voteLabel(mp.getProbSup(currentProp));
+          const offerHtml = VocGame.hasOfferedThisTurn()
+            ? '<p class="not-party">Patronage spent this turn</p>'
+            : canOffer
+            ? '<label class="offer"><input type="radio" name="backbencher" value="' +
+              i +
+              '"' +
+              (selectedMp === mp ? " checked" : "") +
+              "> Offer a post</label>"
+            : '<p class="not-party">' +
+              (mp.cabinetPost ? "Already on the payroll" : "Not in your party") +
+              "</p>";
+          return (
+            '<article class="mp-card' +
+            (outsider ? " outsider" : "") +
+            '">' +
+            "<div><h3>" +
+            mp.name +
+            '</h3><p class="mp-meta">' +
+            mp.seat +
+            " · " +
+            VocGame.seniorityBand(mp.visibleSeniority) +
+            " · " +
+            chance +
+            (outsider ? " · No ministers in this grouping" : "") +
+            "</p></div>" +
+            "<div>" +
+            mp.party.name +
+            " · " +
+            mp.factionName +
+            " (" +
+            mp.factionSize +
+            ")</div>" +
+            "<div>" +
+            VocGame.cutsStance(mp.visiblePosition) +
+            " · " +
+            VocGame.formatBudget(mp.visiblePosition) +
+            "</div>" +
+            "<div>" +
+            VocGame.loyaltyLabel(mp.visibleLoyalty) +
+            "</div>" +
+            "<div>" +
+            VocGame.ambitionLabel(mp.visibleAmbition) +
+            " · " +
+            VocGame.charismaLabel(mp.visibleCharisma) +
+            "</div>" +
+            offerHtml +
+            "</article>"
+          );
+        })
+        .join("");
+    list.querySelectorAll('input[name="backbencher"]').forEach(function (radio) {
+      radio.addEventListener("change", function (event) {
+        const shown = showingAllMps
+          ? fenceMps
+          : fenceMps.slice(0, WHIP_LIST_SHORT);
+        selectedMp = shown[Number(event.target.value)];
+        renderOfferPreview();
+      });
     });
-    VocGame.offerJobs(mps);
+    moreBtn.hidden = showingAllMps || fenceMps.length <= WHIP_LIST_SHORT;
+    moreBtn.textContent =
+      "Show " + (fenceMps.length - WHIP_LIST_SHORT) + " more backbenchers";
+  }
+
+  function makeOffer() {
+    if (!selectedMp || !selectedPostId) return;
+    const result = VocGame.offerPost(selectedMp, selectedPostId);
+    selectedMp = null;
+    selectedPostId = null;
+    openReshuffle(result && result.ok ? result : VocGame.getLastOffer());
+  }
+
+  function openReshuffle(result) {
+    const heading = $("reshuffle-heading");
+    const lede = $("reshuffle-lede");
+    const paper = $("reshuffle-newspaper");
+    if (!result) {
+      heading.textContent = "Reshuffle";
+      lede.textContent = "Nothing came of it.";
+      paper.hidden = true;
+    } else if (!result.accepted) {
+      heading.textContent = "A snub";
+      lede.innerHTML =
+        "<strong>" +
+        result.mp.name +
+        "</strong> has declined to become " +
+        result.post.title +
+        ". <strong>" +
+        result.incumbent.name +
+        "</strong> stays in post.";
+      paper.hidden = true;
+    } else {
+      heading.textContent = "Reshuffle";
+      lede.innerHTML =
+        "<strong>" +
+        result.mp.name +
+        "</strong> takes " +
+        result.post.title +
+        ". <strong>" +
+        result.incumbent.name +
+        "</strong> returns to the backbenches — " +
+        result.incumbent.factionName +
+        " will not thank you.";
+      if (result.scandal) {
+        paper.hidden = false;
+        paper.className = "newspaper leaked";
+        paper.innerHTML =
+          "<h3>" +
+          result.scandal.paper +
+          "</h3><p>" +
+          result.scandal.text +
+          '</p><p class="scandal-drop">PM standing −' +
+          result.scandal.drop +
+          "</p>";
+      } else {
+        paper.hidden = true;
+      }
+    }
+    const forecast = VocGame.getWhipForecast(currentProp, 1);
+    $("reshuffle-expected").textContent = String(forecast.total);
+    $("reshuffle-whip").textContent = whipHeadline(forecast);
+    const rebels = VocGame.getRebelliousFactions(currentProp).slice(0, 3);
+    $("reshuffle-factions").innerHTML = rebels.length
+      ? "Most likely to rebel now: " +
+        rebels
+          .map(function (f) {
+            return (
+              "<strong>" +
+              f.name +
+              "</strong> (~" +
+              f.expectedRebels +
+              " of " +
+              f.size +
+              ")"
+            );
+          })
+          .join("; ") +
+        "."
+      : "No grouping looks especially mutinous on this wording.";
+    showScreen("reshuffle");
+  }
+
+  function continueAfterReshuffle() {
+    cabinetOpen = false;
+    backbenchersOpen = false;
+    selectedMp = null;
+    selectedPostId = null;
+    openJobs();
   }
 
   function goToVote() {
-    applySelectedJobs();
     const result = VocGame.holdDivision(currentProp, 1);
     const won = result.total > 249;
     $("screen-result").classList.toggle("lost", !won);
@@ -412,16 +769,16 @@
       : "Your government has been ousted...";
     $("result-tally").textContent =
       result.total +
-      " votes to the right. " +
+      " ayes for the NHS settlement. " +
       result.nos +
-      " votes to the left." +
+      " noes." +
       (result.total >= VocGame.MAJORITY
         ? " Majority of " + (result.total - result.nos) + "."
         : " Defeated by " + (VocGame.MAJORITY - result.total) + ".");
     const gov = VocGame.getGovernment();
     const opp = VocGame.getOpposition();
     const third = VocGame.getThirdParty();
-    $("result-breakdown").innerHTML =
+    let breakdown =
       "<div>" +
       gov.name +
       " ayes<strong>" +
@@ -437,6 +794,42 @@
       " ayes<strong>" +
       result.byParty[opp.name] +
       "</strong></div>";
+    const events = VocGame.getEvents();
+    if (events.length) {
+      breakdown +=
+        '<div class="sitting-log" style="grid-column:1/-1"><h3>This sitting</h3>' +
+        events
+          .map(function (ev) {
+            if (ev.type === "refuse") {
+              return "<p>" + ev.mpName + " refused " + ev.postTitle + ".</p>";
+            }
+            if (ev.type === "reshuffle") {
+              return (
+                "<p>" +
+                ev.mpName +
+                " took " +
+                ev.postTitle +
+                " from " +
+                ev.sackedName +
+                " (" +
+                ev.factionOut +
+                ").</p>"
+              );
+            }
+            return (
+              "<p><em>" +
+              ev.paper +
+              ":</em> " +
+              ev.text +
+              " Standing −" +
+              ev.drop +
+              ".</p>"
+            );
+          })
+          .join("") +
+        "</div>";
+    }
+    $("result-breakdown").innerHTML = breakdown;
     showScreen("result");
   }
 
@@ -444,12 +837,25 @@
   $("btn-propose").addEventListener("click", openProposal);
   $("policy-slider").addEventListener("input", function (event) {
     const value = Number(event.target.value);
-    $("policy-value").textContent = String(value);
+    updateBudgetReadout(value);
     renderProposalAids(value);
   });
   $("proposal-button").addEventListener("click", openJobs);
+  $("post-select").addEventListener("change", function (event) {
+    selectedPostId = event.target.value || null;
+    renderOfferPreview();
+  });
+  $("toggle-backbenchers").addEventListener("click", function () {
+    backbenchersOpen = !backbenchersOpen;
+    syncBackbencherToggle();
+  });
+  $("show-more-mps").addEventListener("click", function () {
+    showingAllMps = true;
+    renderMpList();
+  });
+  $("offer-btn").addEventListener("click", makeOffer);
+  $("reshuffle-continue").addEventListener("click", continueAfterReshuffle);
   $("next-prop").addEventListener("click", function () {
-    applySelectedJobs();
     loop += 1;
     openProposal();
   });

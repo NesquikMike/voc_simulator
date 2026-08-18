@@ -643,6 +643,10 @@ button.secondary {
   font-size: 0.68rem;
 }
 
+.mp-card.outsider {
+  outline: 1px dashed rgba(241, 212, 120, 0.45);
+}
+
 .offer {
   display: flex;
   flex-direction: column;
@@ -731,6 +735,195 @@ button.secondary {
   margin-top: 22px;
   color: rgba(244, 234, 212, 0.55);
   font-size: 0.8rem;
+}
+
+.cabinet-wrap {
+  margin: 18px 0 8px;
+  overflow-x: auto;
+}
+
+.cabinet-head,
+.reveal-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.cabinet-head h3,
+.reveal-head h3 {
+  margin: 0;
+}
+
+.reveal-btn,
+.cabinet-toggle {
+  margin: 0;
+  padding: 14px 22px;
+  font-size: 0.92rem;
+  min-width: 16rem;
+}
+
+.cabinet-wrap h3,
+.offer-label {
+  font-family: Cinzel, serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+  color: var(--gold);
+  margin: 0 0 10px;
+}
+
+.cabinet-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.cabinet-table th,
+.cabinet-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(241, 212, 120, 0.12);
+  vertical-align: top;
+}
+
+.cabinet-table thead th {
+  color: var(--gold);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cabinet-table small {
+  color: var(--parchment-dark);
+}
+
+.patronage-banner {
+  margin: 18px 0;
+  padding: 16px 18px;
+  border: 1px solid var(--gold);
+  border-radius: 14px;
+  background: rgba(201, 162, 39, 0.18);
+}
+
+.patronage-banner p {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+
+.whip-list-wrap {
+  margin-top: 22px;
+}
+
+.whip-list-title {
+  font-family: Cinzel, serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+  color: var(--gold);
+  margin: 0 0 6px;
+}
+
+.whip-list-copy {
+  margin: 0 0 14px;
+  color: var(--parchment-dark);
+  font-size: 0.92rem;
+}
+
+.offer-panel {
+  margin: 28px 0 22px;
+  padding: 16px;
+  border: 1px solid rgba(241, 212, 120, 0.2);
+  border-radius: 14px;
+  background: rgba(7, 23, 18, 0.35);
+}
+
+.offer-panel select {
+  width: 100%;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(241, 212, 120, 0.35);
+  background: #102920;
+  color: var(--parchment);
+  font: inherit;
+}
+
+.offer-preview {
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+}
+
+.offer-preview p {
+  margin: 0;
+}
+
+.newspaper {
+  margin: 0 0 18px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: #f4ead4;
+  color: #1b1712;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+}
+
+.newspaper h3 {
+  font-family: Cinzel, serif;
+  margin: 0 0 8px;
+}
+
+#screen-reshuffle h2 {
+  font-family: Cinzel, serif;
+  letter-spacing: 0.06em;
+  color: var(--gold-bright);
+  margin: 0 0 12px;
+}
+
+#reshuffle-lede {
+  font-size: 1.15rem;
+  line-height: 1.5;
+  margin: 0 0 18px;
+}
+
+.newspaper.leaked,
+.newspaper.leaked {
+  background: #f7e0c8;
+}
+
+.scandal-card,
+.scandal-card {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(27, 23, 18, 0.2);
+}
+
+.paper-name,
+.paper-name {
+  font-family: Cinzel, serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  margin: 0 0 6px;
+}
+
+.scandal-drop,
+.scandal-drop {
+  font-weight: 600;
+}
+
+.mp-card small {
+  display: block;
+  margin-top: 4px;
+  color: var(--parchment-dark);
+}
+
+.sitting-log h3 {
+  font-family: Cinzel, serif;
+  font-size: 0.9rem;
+  margin: 0 0 8px;
 }
 
 @media (max-width: 900px) {
