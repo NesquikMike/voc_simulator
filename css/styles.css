@@ -187,6 +187,7 @@ button.secondary {
   border-color: rgba(74, 48, 24, 0.4);
 }
 
+.turn-row,
 .turn-row {
   display: flex;
   flex-wrap: wrap;
@@ -203,6 +204,7 @@ button.secondary {
   min-width: 0;
 }
 
+.turn-pips,
 .turn-pips {
   display: flex;
   gap: 8px;
@@ -216,15 +218,18 @@ button.secondary {
   border: 1px solid rgba(241, 212, 120, 0.28);
 }
 
+.pip.done,
 .pip.done {
   background: var(--gold-dim);
 }
 
+.pip.current,
 .pip.current {
   background: var(--gold-bright);
   box-shadow: 0 0 12px rgba(241, 212, 120, 0.55);
 }
 
+.leader-banner,
 .leader-banner {
   margin: 0 0 20px;
   padding: 12px 16px;
@@ -255,6 +260,7 @@ button.secondary {
   outline-offset: 0;
 }
 
+.party-name,
 .party-name {
   font-family: Cinzel, serif;
   margin: 0 0 6px;
@@ -264,6 +270,7 @@ button.secondary {
   gap: 8px;
 }
 
+.swatch,
 .swatch {
   width: 12px;
   height: 12px;
@@ -281,6 +288,7 @@ button.secondary {
 .swatch.civic { background: var(--civic); }
 .swatch.peace { background: var(--peace); }
 
+.role-tag,
 .role-tag {
   display: inline-block;
   font-size: 0.72rem;
@@ -314,6 +322,7 @@ button.secondary {
   color: var(--parchment-dark);
 }
 
+.gauge-wrap,
 .gauge-wrap {
   margin-top: 12px;
 }
@@ -604,33 +613,37 @@ button.secondary {
   font-size: 1.3rem;
 }
 
-.whip-box {
-  display: grid;
-  grid-template-columns: 160px 1fr;
-  gap: 18px;
+.party-positions-wrap,
+.party-positions-wrap {
+  margin-bottom: 14px;
+}
+
+.party-grid-body,
+.party-grid-body {
+  margin-top: 8px;
+}
+
+.party-grid-body .party-grid,
+.party-grid-body .party-grid {
+  margin-bottom: 8px;
+}
+
+.reveal-head {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  background: rgba(7, 23, 18, 0.4);
-  border: 1px solid rgba(241, 212, 120, 0.18);
-  border-radius: 14px;
-  padding: 16px 18px;
-  margin-bottom: 20px;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
-.whip-number {
+.whip-list-title {
   font-family: Cinzel, serif;
-  font-size: 2.6rem;
-  line-height: 1;
-  color: var(--gold-bright);
-  text-align: center;
-}
-
-.whip-number small {
-  display: block;
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--parchment-dark);
-  margin-top: 6px;
+  font-size: 0.95rem;
+  color: var(--gold);
+  margin: 0;
 }
 
 .majority-bar {
@@ -655,6 +668,45 @@ button.secondary {
   width: 2px;
   background: white;
   left: calc(250 / 499 * 100%);
+}
+
+.whip-box {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 18px;
+  align-items: center;
+  background: rgba(7, 23, 18, 0.5);
+  border: 1px solid rgba(241, 212, 120, 0.45);
+  border-radius: 14px;
+  padding: 22px 22px;
+  margin-bottom: 24px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+}
+
+.whip-heading {
+  font-family: Cinzel, serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+  color: var(--gold);
+  margin: 0 0 10px;
+}
+
+.whip-number {
+  font-family: Cinzel, serif;
+  font-size: 3.1rem;
+  line-height: 1;
+  color: var(--gold-bright);
+  text-align: center;
+}
+
+.whip-number small {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--parchment-dark);
+  margin-top: 6px;
 }
 
 .whip-note {

@@ -22,6 +22,7 @@
   let jobsCabinetOpen = false;
   let backbenchersOpen = false;
   let reshuffleOpen = false;
+  let jobsPartiesOpen = false;
   const WHIP_LIST_SHORT = 5;
 
   function showScreen(name) {
@@ -231,28 +232,14 @@
           need +
           " votes from outside your party.";
 
-    const html =
-      (opts && opts.showTurns
-        ? '<div class="turn-row"><div class="turn-pips">' +
-          [0, 1, 2]
-            .map(function (i) {
-              const cls = i < loop ? "done" : i === loop ? "current" : "";
-              return '<span class="pip ' + cls + '"></span>';
-            })
-            .join("") +
-          "</div><span>Turn " +
-          (loop + 1) +
-          " of 3</span>" +
-          '<span class="turn-chips">' +
-          popularityChip() +
-          offerChip() +
-          "</span></div>"
-        : "") +
+    const leaderHtml =
       '<p class="leader-banner">You are the Party Leader of the ' +
       government.name +
       ". " +
       govLine +
-      "</p>" +
+      "</p>";
+
+    const partyCards =
       '<div class="party-grid">' +
       parties
         .map(function (party) {
@@ -290,7 +277,41 @@
           );
         })
         .join("") +
-      "</div>" +
+      "</div>";
+
+    const partyBlock =
+      opts && opts.collapseParties
+        ? '<div class="party-positions-wrap"><div class="reveal-head">' +
+          '<h3 class="whip-list-title">Party positions</h3>' +
+          '<button type="button" class="reveal-btn secondary party-toggle">' +
+          (jobsPartiesOpen ? "Hide party positions" : "Show party positions") +
+          "</button></div>" +
+          '<div class="party-grid-body"' +
+          (jobsPartiesOpen ? "" : " hidden") +
+          ">" +
+          partyCards +
+          "</div></div>"
+        : partyCards;
+
+    const html =
+      (opts && opts.showTurns
+        ? '<div class="turn-row"><div class="turn-pips">' +
+          [0, 1, 2]
+            .map(function (i) {
+              const cls = i < loop ? "done" : i === loop ? "current" : "";
+              return '<span class="pip ' + cls + '"></span>';
+            })
+            .join("") +
+          "</div><span>Turn " +
+          (loop + 1) +
+          " of 3</span>" +
+          '<span class="turn-chips">' +
+          popularityChip() +
+          offerChip() +
+          "</span></div>"
+        : "") +
+      leaderHtml +
+      partyBlock +
       (opts && opts.showCabinet ? renderCabinetCards() : "") +
       (opts && opts.showChamber === false ? "" : renderChamber());
 
@@ -298,6 +319,21 @@
       const el = $(id);
       el.innerHTML = html;
       bindCabinetToggle(el);
+      bindPartyPositionsToggle(el);
+    });
+  }
+
+  function bindPartyPositionsToggle(root) {
+    if (!root) return;
+    const btn = root.querySelector(".party-toggle");
+    const body = root.querySelector(".party-grid-body");
+    if (!btn || !body) return;
+    btn.addEventListener("click", function () {
+      jobsPartiesOpen = !jobsPartiesOpen;
+      body.hidden = !jobsPartiesOpen;
+      btn.textContent = jobsPartiesOpen
+        ? "Hide party positions"
+        : "Show party positions";
     });
   }
 
@@ -458,6 +494,7 @@
     jobsCabinetOpen = false;
     backbenchersOpen = false;
     reshuffleOpen = false;
+    jobsPartiesOpen = false;
     renderDashboard(["info-dashboard"], { showTurns: false, showCabinet: true });
     showScreen("info");
   }
@@ -659,7 +696,12 @@
 
   function openJobs() {
     currentProp = Number($("policy-slider").value);
-    renderDashboard(["jobs-dashboard"], { showTurns: true, showChamber: false });
+    jobsPartiesOpen = false;
+    renderDashboard(["jobs-dashboard"], {
+      showTurns: true,
+      showChamber: false,
+      collapseParties: true,
+    });
     refreshWhipBox();
     $("cabinet-mount").innerHTML = renderCabinetCards({
       selectable: true,
