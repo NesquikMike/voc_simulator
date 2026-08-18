@@ -209,11 +209,11 @@
             party.possessive +
             " " +
             party.numMps +
-            " MPs, and " +
-            party.possessive +
-            " a median preferred settlement of " +
+            " MPs. Our reports indicate that a policy of " +
             VocGame.formatBudget(median) +
-            ".</p>" +
+            " is most popular with " +
+            party.name +
+            " MPs.</p>" +
             '<div class="gauge-wrap"><div class="gauge-label"><span>Expansion</span><span>Cuts</span></div>' +
             numberLine(median) +
             "</div></article>"
@@ -444,24 +444,29 @@
       return row.post.id === selectedPostId;
     }).mp;
     const chance = VocGame.acceptanceChance(selectedMp, post);
+    const takeJob =
+      chance >= 0.7
+        ? "is likely to <strong>accept the post</strong>"
+        : chance >= 0.4
+          ? "is a toss-up to <strong>accept the post</strong>"
+          : "is a long shot to <strong>accept the post</strong>";
     box.innerHTML =
-      "<p>Offer <strong>" +
-      post.title +
-      "</strong> to <strong>" +
+      "<p>The Chief Whip thinks <strong>" +
       selectedMp.name +
-      "</strong> (" +
-      VocGame.chanceLabel(chance) +
-      ", " +
-      Math.round(chance * 100) +
-      "%). That means sacking " +
+      "</strong> " +
+      takeJob +
+      " if offered <strong>" +
+      post.title +
+      "</strong>.</p>" +
+      "<p>It would mean sacking <strong>" +
       incumbent.name +
-      " of " +
+      "</strong> of " +
       incumbent.factionName +
-      " — " +
-      VocGame.grievanceLabel(incumbent.visibleGrievance) +
-      ", " +
+      ", who is " +
+      VocGame.grievanceLabel(incumbent.visibleGrievance).toLowerCase() +
+      " and a " +
       leakBand(VocGame.leakChance(incumbent)) +
-      ").</p>";
+      ".</p>";
     btn.disabled = false;
   }
 
