@@ -175,9 +175,10 @@
           "</div><span>Turn " +
           (loop + 1) +
           " of 3</span>" +
+          '<span class="turn-chips">' +
           popularityChip() +
           offerChip() +
-          "</div>"
+          "</span></div>"
         : "") +
       '<p class="leader-banner">You are the Party Leader of the ' +
       government.name +
@@ -344,14 +345,19 @@
     $("policy-pins").innerHTML = [gov, third, opp]
       .map(function (party) {
         const median = party.getMedianMpPos();
+        const label = party === gov ? "Yours" : party.name;
         return (
           '<span class="policy-pin ' +
           VocGame.partySlug(party.name) +
-          '" style="left:' +
+          '" style="--pos:' +
           median +
           '%">' +
-          (party === gov ? "Yours" : party.name) +
-          "</span>"
+          '<span class="policy-pin-name">' +
+          label +
+          '</span><span class="policy-pin-value">' +
+          VocGame.formatBudget(median) +
+          '</span><span class="policy-pin-track" aria-hidden="true">' +
+          '<span class="policy-pin-mark"></span></span></span>'
         );
       })
       .join("");

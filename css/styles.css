@@ -183,10 +183,18 @@ button.secondary {
 
 .turn-row {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 10px 12px;
   margin-bottom: 18px;
+}
+
+.turn-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
 }
 
 .turn-pips {
@@ -417,6 +425,7 @@ button.secondary {
 .policy-pin {
   position: absolute;
   top: 0;
+  left: var(--pos);
   transform: translateX(-50%);
   font-size: 0.68rem;
   letter-spacing: 0.04em;
@@ -432,6 +441,11 @@ button.secondary {
   height: 8px;
   margin: 0 auto 3px;
   background: currentColor;
+}
+
+.policy-pin-value,
+.policy-pin-track {
+  display: none;
 }
 
 .policy-pin.workers { color: #f0a8a0; }
@@ -518,6 +532,7 @@ button.secondary {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--gold-bright);
+  white-space: nowrap;
 }
 
 .breakdown {
@@ -954,12 +969,99 @@ button.secondary {
     grid-template-columns: 1fr;
   }
 
+  .slider-row {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "left right"
+      "slider slider";
+    gap: 4px 12px;
+  }
+
+  .slider-label-left {
+    grid-area: left;
+  }
+
+  .slider-label-right {
+    grid-area: right;
+    text-align: right;
+  }
+
+  .slider-row input[type="range"] {
+    grid-area: slider;
+  }
+
   .policy-pins {
-    margin: 4px 0 0;
+    position: static;
+    height: auto;
+    margin: 16px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .policy-pin {
+    position: static;
+    left: auto;
+    transform: none;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px 10px;
+    white-space: normal;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.9rem;
+  }
+
+  .policy-pin::before {
+    display: none;
+  }
+
+  .policy-pin-value,
+  .policy-pin-track {
+    display: block;
+  }
+
+  .policy-pin-name {
+    font-family: Cinzel, serif;
+    letter-spacing: 0.04em;
+  }
+
+  .policy-pin-value {
+    color: var(--parchment);
+    font-size: 0.85rem;
+  }
+
+  .policy-pin-track {
+    grid-column: 1 / -1;
+    position: relative;
+    height: 8px;
+    margin-top: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .policy-pin-mark {
+    position: absolute;
+    left: var(--pos);
+    top: 50%;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: currentColor;
+    transform: translate(-50%, -50%);
   }
 }
 
 @media (max-width: 640px) {
+  .turn-chips {
+    flex: 1 1 100%;
+  }
+
+  .posts-chip {
+    letter-spacing: 0.03em;
+    font-size: 0.72rem;
+  }
+
   .masthead {
     align-items: flex-start;
   }
