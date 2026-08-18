@@ -72,12 +72,12 @@
         <div id="proposal-dashboard"></div>
         <div class="policy-block">
           <p class="policy-copy">Set this year’s NHS settlement. Expansion to the left, cuts to the right.</p>
+          <div class="policy-pins" id="policy-pins"></div>
           <div class="slider-row">
             <span class="slider-label slider-label-left">Expansion</span>
             <input id="policy-slider" type="range" min="0" max="100" value="50" />
             <span class="slider-label slider-label-right">Cuts</span>
           </div>
-          <div class="policy-pins" id="policy-pins"></div>
           <p class="policy-value" id="policy-value">a freeze — Standstill</p>
           <div class="lean-grid" id="proposal-lean"></div>
         </div>
@@ -113,28 +113,48 @@
         </div>
         <div class="whip-list-wrap">
           <div class="reveal-head">
-            <h3 class="whip-list-title">Backbenchers of interest</h3>
-            <button id="toggle-backbenchers" class="reveal-btn" type="button">
-              Show backbenchers of interest
+            <h3 class="whip-list-title">Organise a reshuffle</h3>
+            <button id="toggle-reshuffle" class="reveal-btn" type="button">
+              Organise a reshuffle
             </button>
           </div>
-          <div id="backbencher-body" hidden>
+          <div id="reshuffle-body" hidden>
             <p class="whip-list-copy">
-              Ranked by how likely they are to vote against you, and how far their
-              grouping might swing if you bring them in.
+              Choose a backbencher to bring in, then a cabinet minister whose post they will take.
             </p>
-            <div id="mp-list" class="mp-list"></div>
-            <div class="actions">
-              <button id="show-more-mps" class="secondary" type="button" hidden>
-                Show more backbenchers
+            <div class="reveal-head">
+              <h3 class="whip-list-title">Backbenchers of interest</h3>
+              <button id="toggle-backbenchers" class="reveal-btn secondary" type="button">
+                Show backbenchers
               </button>
             </div>
-            <div id="cabinet-mount"></div>
+            <div id="backbencher-body" hidden>
+              <p class="whip-list-copy">
+                Ranked by how likely they are to vote against you, and how far their
+                grouping might swing if you bring them in. Tap a card to select them.
+              </p>
+              <div id="mp-list" class="mp-list"></div>
+              <div class="actions">
+                <button id="show-more-mps" class="secondary" type="button" hidden>
+                  Show more backbenchers
+                </button>
+              </div>
+            </div>
+            <div class="reveal-head">
+              <h3 class="whip-list-title">Cabinet ministers</h3>
+              <button id="toggle-cabinet" class="reveal-btn secondary" type="button">
+                Show cabinet ministers
+              </button>
+            </div>
+            <div id="cabinet-body" hidden>
+              <p class="whip-list-copy">
+                Tap a minister to choose whose post you will offer.
+              </p>
+              <div id="cabinet-mount"></div>
+            </div>
             <div class="offer-panel">
-              <label class="offer-label" for="post-select">Cabinet post to offer</label>
-              <select id="post-select"></select>
               <div id="offer-preview" class="offer-preview">
-                <p>Pick a government backbencher above, then choose a cabinet post.</p>
+                <p>Select a backbencher and a cabinet minister.</p>
               </div>
               <button id="offer-btn" type="button" disabled>Offer this post</button>
             </div>

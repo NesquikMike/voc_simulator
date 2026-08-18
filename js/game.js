@@ -16,6 +16,15 @@
   const GOV_SEATS_MIN = 228;
   const GOV_SEATS_MAX = 255;
 
+  const MINOR_PARTY_POOL = [
+    { name: "Green League", possessive: "has", slug: "greens", mean: 14, spread: 7 },
+    { name: "Peace Union", possessive: "has", slug: "peace", mean: 22, spread: 8 },
+    { name: "Civic Alliance", possessive: "has", slug: "civic", mean: 46, spread: 8 },
+    { name: "National League", possessive: "has", slug: "nationals", mean: 58, spread: 8 },
+    { name: "Country Party", possessive: "has", slug: "country", mean: 66, spread: 8 },
+    { name: "Free Traders", possessive: "have", slug: "traders", mean: 76, spread: 7 },
+  ];
+
   const CABINET_POSTS = [
     { id: "chancellor", title: "Chancellor of the Exchequer", prestige: 100 },
     { id: "foreign", title: "Foreign Secretary", prestige: 95 },
@@ -236,6 +245,8 @@
       this.possessive = "";
       this.numMps = 0;
       this.mpsInParty = [];
+      this.isMajor = false;
+      this.slug = "";
     }
 
     increaseNumMps() {
@@ -413,6 +424,32 @@
     return partys[idx];
   }
 
+  function poisson(lambda) {
+    const L = Math.exp(-lambda);
+    let k = 0;
+    let p = 1;
+    do {
+      k += 1;
+      p *= Math.random();
+    } while (p > L);
+    return k - 1;
+  }
+
+  function sampleMinorSize() {
+    return clamp(poisson(10), 1, 50);
+  }
+
+  function shuffle(list) {
+    const arr = list.slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = randInt(i + 1);
+      const tmp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = tmp;
+    }
+    return arr;
+  }
+
   function generateParties(n) {
     partys = [];
     let ranPos = genRanNoRep(n, 0, 100);
@@ -432,32 +469,86 @@
     sortPartiesByPosition();
     partys[0].name = "Workers Party";
     partys[0].possessive = "has";
+    partys[0].isMajor = true;
+    partys[0].slug = "workers";
     partys[1].name = "Liberals";
     partys[1].possessive = "have";
+    partys[1].isMajor = true;
+    partys[1].slug = "liberals";
     partys[2].name = "Royalists";
     partys[2].possessive = "have";
+    partys[2].isMajor = true;
+    partys[2].slug = "royalists";
+
+    const nMinor = 2 + randInt(2);
+    const minors = shuffle(MINOR_PARTY_POOL).slice(0, nMinor);
+    minors.forEach(function (spec) {
+      const pos = clamp0to100(Math.round(spec.mean + gauss(3)));
+      const party = new Party(partys.length, pos);
+      party.name = spec.name;
+      party.possessive = spec.possessive;
+      party.isMajor = false;
+      party.slug = spec.slug;
+      party.spread = spec.spread;
+      partys.push(party);
+    });
+  }
+
+  function getClosestMajor(x) {
+    const majors = partys.filter(function (p) {
+      return p.isMajor;
+    });
+    let distance = Math.abs(majors[0].position - x);
+    let idx = 0;
+    for (let c = 1; c < majors.length; c++) {
+      const cdistance = Math.abs(majors[c].position - x);
+      if (cdistance < distance) {
+        idx = c;
+        distance = cdistance;
+      }
+    }
+    return majors[idx];
+  }
+
+  function makeMp(id, position, party, seniority) {
+    new ParlMember({
+      id: id,
+      forename: FORENAMES[randInt(FORENAMES.length)],
+      surname: SURNAMES[randInt(SURNAMES.length)],
+      seat: SEATS[id],
+      ambition: randInt(101),
+      loyalty: randInt(101),
+      position: position,
+      seniority:
+        seniority !== undefined
+          ? seniority
+          : Math.random() < 0.1
+            ? 4 + randInt(20)
+            : clamp0to100(Math.round(gauss(22) + 42)),
+      charisma: randInt(101),
+      sleaze: randInt(101),
+      party: party,
+    });
   }
 
   function generateMps() {
     mps = [];
-    for (let i = 0; i < MP_COUNT; i++) {
+    let nextId = 0;
+    partys.forEach(function (party) {
+      if (party.isMajor) return;
+      const n = sampleMinorSize();
+      for (let i = 0; i < n && nextId < MP_COUNT; i++) {
+        const position = clamp0to100(
+          Math.round(party.position + gauss(party.spread || 8))
+        );
+        makeMp(nextId, position, party);
+        nextId += 1;
+      }
+    });
+    while (nextId < MP_COUNT) {
       const position = randInt(101);
-      new ParlMember({
-        id: i,
-        forename: FORENAMES[randInt(FORENAMES.length)],
-        surname: SURNAMES[randInt(SURNAMES.length)],
-        seat: SEATS[i],
-        ambition: randInt(101),
-        loyalty: randInt(101),
-        position: position,
-        seniority:
-          Math.random() < 0.1
-            ? 4 + randInt(20)
-            : clamp0to100(Math.round(gauss(22) + 42)),
-        charisma: randInt(101),
-        sleaze: randInt(101),
-        party: getClosestParty(position),
-      });
+      makeMp(nextId, position, getClosestMajor(position));
+      nextId += 1;
     }
     for (let i = 0; i < MP_COUNT; i++) {
       mps[i].giveGovStatus();
@@ -487,7 +578,11 @@
     feudSet = {};
     partys.forEach(function (party) {
       const members = party.mpsInParty;
-      const nFeuds = 8 + randInt(Math.max(6, Math.floor(members.length / 12)));
+      if (members.length < 2) return;
+      const nFeuds = Math.min(
+        Math.floor((members.length * (members.length - 1)) / 2),
+        8 + randInt(Math.max(6, Math.floor(members.length / 12)))
+      );
       let placed = 0;
       let guard = 0;
       while (placed < nFeuds && guard < nFeuds * 40) {
@@ -780,6 +875,10 @@
     const gov = getGovernment();
     const opp = getOpposition();
     const third = getThirdParty();
+    const byParty = {};
+    partys.forEach(function (p) {
+      byParty[p.name] = p === gov ? playerVote : 0;
+    });
     let government = playerVote;
     let opposition = 0;
     let thirdAyes = 0;
@@ -787,6 +886,7 @@
     for (let i = 0; i < MP_COUNT; i++) {
       const mp = mps[i];
       const p = mp.getProbSup(x);
+      byParty[mp.party.name] += p;
       if (mp.party === gov) {
         government += p;
         rebels += 1 - p;
@@ -804,6 +904,7 @@
       third: Math.floor(thirdAyes),
       rebels: Math.floor(rebels),
       shortfall: MAJORITY - Math.floor(total),
+      byParty: byParty,
     };
   }
 
@@ -812,9 +913,9 @@
     const opp = getOpposition();
     const third = getThirdParty();
     const byParty = {};
-    byParty[gov.name] = playerVote;
-    byParty[opp.name] = 0;
-    byParty[third.name] = 0;
+    partys.forEach(function (p) {
+      byParty[p.name] = p === gov ? playerVote : 0;
+    });
     let total = playerVote;
     let rebels = 0;
     for (let i = 0; i < mps.length; i++) {
@@ -1073,6 +1174,10 @@
   }
 
   function partySlug(name) {
+    const party = partys.filter(function (p) {
+      return p.name === name;
+    })[0];
+    if (party && party.slug) return party.slug;
     if (name === "Workers Party") return "workers";
     if (name === "Liberals") return "liberals";
     return "royalists";

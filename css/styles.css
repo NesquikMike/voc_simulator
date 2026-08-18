@@ -18,6 +18,12 @@
   --workers: #c0392b;
   --liberals: #d4a017;
   --royalists: #2c4a8c;
+  --greens: #3d9b6e;
+  --country: #b0892e;
+  --traders: #2a9d8f;
+  --nationals: #8e3a6b;
+  --civic: #4a7c9b;
+  --peace: #c47a3a;
   --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
   --radius: 18px;
 }
@@ -231,7 +237,7 @@ button.secondary {
 
 .party-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
   margin-bottom: 22px;
 }
@@ -268,6 +274,12 @@ button.secondary {
 .swatch.workers { background: var(--workers); }
 .swatch.liberals { background: var(--liberals); }
 .swatch.royalists { background: var(--royalists); }
+.swatch.greens { background: var(--greens); }
+.swatch.country { background: var(--country); }
+.swatch.traders { background: var(--traders); }
+.swatch.nationals { background: var(--nationals); }
+.swatch.civic { background: var(--civic); }
+.swatch.peace { background: var(--peace); }
 
 .role-tag {
   display: inline-block;
@@ -280,6 +292,16 @@ button.secondary {
   color: var(--gold-bright);
   margin-bottom: 10px;
 }
+
+.role-tag.workers { border-color: var(--workers); color: #f0a8a0; }
+.role-tag.liberals { border-color: var(--liberals); color: #e6c86a; }
+.role-tag.royalists { border-color: var(--royalists); color: #9eb4e8; }
+.role-tag.greens { border-color: var(--greens); color: #7dce9a; }
+.role-tag.country { border-color: var(--country); color: #d4b35a; }
+.role-tag.traders { border-color: var(--traders); color: #6ed0c4; }
+.role-tag.nationals { border-color: var(--nationals); color: #d080a8; }
+.role-tag.civic { border-color: var(--civic); color: #7eb3d4; }
+.role-tag.peace { border-color: var(--peace); color: #e0a06a; }
 
 .mp-count {
   font-size: 1.7rem;
@@ -347,16 +369,11 @@ button.secondary {
 }
 
 .bench-side {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.bench-row {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 7px);
   gap: 3px;
   justify-content: center;
+  align-content: start;
 }
 
 .mp-dot {
@@ -368,6 +385,12 @@ button.secondary {
 .mp-dot.workers { background: var(--workers); }
 .mp-dot.liberals { background: var(--liberals); }
 .mp-dot.royalists { background: var(--royalists); }
+.mp-dot.greens { background: var(--greens); }
+.mp-dot.country { background: var(--country); }
+.mp-dot.traders { background: var(--traders); }
+.mp-dot.nationals { background: var(--nationals); }
+.mp-dot.civic { background: var(--civic); }
+.mp-dot.peace { background: var(--peace); }
 
 .gangway {
   width: 18px;
@@ -417,40 +440,59 @@ button.secondary {
 }
 
 .policy-pins {
-  position: relative;
-  height: 22px;
-  margin: 4px 48px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 0 16px;
 }
 
 .policy-pin {
-  position: absolute;
-  top: 0;
-  left: var(--pos);
-  transform: translateX(-50%);
-  font-size: 0.68rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  white-space: nowrap;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 10px;
+  font-size: 0.9rem;
   color: var(--parchment-dark);
 }
 
-.policy-pin::before {
-  content: "";
-  display: block;
-  width: 2px;
-  height: 8px;
-  margin: 0 auto 3px;
-  background: currentColor;
+.policy-pin-name {
+  font-family: Cinzel, serif;
+  letter-spacing: 0.04em;
 }
 
-.policy-pin-value,
+.policy-pin-value {
+  color: var(--parchment);
+  font-size: 0.85rem;
+}
+
 .policy-pin-track {
-  display: none;
+  grid-column: 1 / -1;
+  position: relative;
+  height: 8px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.policy-pin-mark {
+  position: absolute;
+  left: var(--pos);
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: currentColor;
+  transform: translate(-50%, -50%);
 }
 
 .policy-pin.workers { color: #f0a8a0; }
 .policy-pin.liberals { color: #e6c86a; }
 .policy-pin.royalists { color: #9eb4e8; }
+.policy-pin.greens { color: #7dce9a; }
+.policy-pin.country { color: #d4b35a; }
+.policy-pin.traders { color: #6ed0c4; }
+.policy-pin.nationals { color: #d080a8; }
+.policy-pin.civic { color: #7eb3d4; }
+.policy-pin.peace { color: #e0a06a; }
 
 .lean-grid {
   display: grid;
@@ -490,6 +532,12 @@ button.secondary {
 .lean-fill.workers { background: var(--workers); }
 .lean-fill.liberals { background: var(--liberals); }
 .lean-fill.royalists { background: var(--royalists); }
+.lean-fill.greens { background: var(--greens); }
+.lean-fill.country { background: var(--country); }
+.lean-fill.traders { background: var(--traders); }
+.lean-fill.nationals { background: var(--nationals); }
+.lean-fill.civic { background: var(--civic); }
+.lean-fill.peace { background: var(--peace); }
 
 .lean-card p {
   margin: 8px 0 0;
@@ -615,37 +663,10 @@ button.secondary {
   color: var(--parchment-dark);
 }
 
-.list-head {
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr 1.4fr 1.4fr 1.4fr 120px;
-  gap: 10px 14px;
-  padding: 0 14px 8px;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--gold);
-  font-family: Cinzel, serif;
-}
-
-.mp-list {
+.mp-list,
+.cabinet-cards {
   display: grid;
   gap: 12px;
-}
-
-.mp-card {
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr 1.4fr 1.4fr 1.4fr 120px;
-  gap: 10px 14px;
-  align-items: center;
-  padding: 12px 14px;
-  background: rgba(255, 250, 240, 0.04);
-  border: 1px solid rgba(241, 212, 120, 0.12);
-  border-radius: 12px;
-}
-
-.mp-card h3 {
-  margin: 0;
-  font-size: 1rem;
 }
 
 .mp-meta {
@@ -680,7 +701,7 @@ button.secondary {
 .not-party {
   font-size: 0.78rem;
   color: var(--parchment-dark);
-  text-align: center;
+  margin: 10px 0 0;
 }
 
 .empty-fence {
@@ -790,29 +811,34 @@ button.secondary {
   margin: 0 0 10px;
 }
 
-.cabinet-table {
-  width: 100%;
-  border-collapse: collapse;
+.cabinet-card p {
+  margin: 0 0 4px;
   font-size: 0.88rem;
 }
 
-.cabinet-table th,
-.cabinet-table td {
-  text-align: left;
-  padding: 8px 10px;
-  border-bottom: 1px solid rgba(241, 212, 120, 0.12);
-  vertical-align: top;
+.cabinet-card p:last-child {
+  margin-bottom: 0;
 }
 
-.cabinet-table thead th {
+.card-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 14px;
+  margin: 10px 0 0;
+  font-size: 0.88rem;
+}
+
+.card-facts dt {
   color: var(--gold);
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
+  font-family: Cinzel, serif;
+  padding-top: 2px;
 }
 
-.cabinet-table small {
-  color: var(--parchment-dark);
+.card-facts dd {
+  margin: 0;
 }
 
 .patronage-banner {
@@ -831,6 +857,15 @@ button.secondary {
 
 .whip-list-wrap {
   margin-top: 22px;
+}
+
+#reshuffle-body .reveal-head {
+  margin-top: 8px;
+}
+
+#backbencher-body,
+#cabinet-body {
+  margin-bottom: 8px;
 }
 
 .whip-list-title {
@@ -856,20 +891,70 @@ button.secondary {
   background: rgba(7, 23, 18, 0.35);
 }
 
-.offer-panel select {
+.pick-card,
+.post-card {
+  display: block;
   width: 100%;
-  margin: 0 0 12px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(241, 212, 120, 0.35);
-  background: #102920;
+  text-align: left;
+  border-radius: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(241, 212, 120, 0.18);
+  background: rgba(255, 250, 240, 0.04);
   color: var(--parchment);
-  font: inherit;
+  box-shadow: none;
+  font-family: inherit;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+button.pick-card:hover,
+button.post-card:hover {
+  filter: none;
+  transform: none;
+  border-color: var(--gold);
+  background: rgba(255, 250, 240, 0.08);
+}
+
+button.pick-card:disabled,
+button.pick-card:disabled:hover {
+  cursor: default;
+  opacity: 0.72;
+  transform: none;
+  filter: none;
+  border-color: rgba(241, 212, 120, 0.18);
+  background: rgba(255, 250, 240, 0.04);
+}
+
+.pick-card h3,
+.post-card h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-family: Cinzel, serif;
+  letter-spacing: 0.04em;
+}
+
+.pick-card .mp-meta,
+.post-card .mp-meta {
+  margin: 0;
+}
+
+.pick-card.selected,
+.post-card.selected,
+.mp-card.selected {
+  outline: 2px solid var(--gold);
+  outline-offset: 0;
 }
 
 .offer-preview {
-  font-size: 0.95rem;
+  position: sticky;
+  bottom: 8px;
+  z-index: 2;
+  padding: 12px 14px;
   margin-bottom: 12px;
+  border-radius: 12px;
+  background: #16382e;
+  border: 1px solid rgba(241, 212, 120, 0.35);
+  font-size: 0.95rem;
 }
 
 .offer-preview p {
@@ -942,21 +1027,8 @@ button.secondary {
 }
 
 @media (max-width: 900px) {
-  .list-head {
-    display: none;
-  }
-
   .party-grid {
     grid-template-columns: 1fr;
-  }
-
-  .mp-card {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .offer,
-  .not-party {
-    grid-column: 1 / -1;
   }
 
   .whip-box {
@@ -989,67 +1061,6 @@ button.secondary {
   .slider-row input[type="range"] {
     grid-area: slider;
   }
-
-  .policy-pins {
-    position: static;
-    height: auto;
-    margin: 16px 0 0;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .policy-pin {
-    position: static;
-    left: auto;
-    transform: none;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 2px 10px;
-    white-space: normal;
-    text-transform: none;
-    letter-spacing: 0;
-    font-size: 0.9rem;
-  }
-
-  .policy-pin::before {
-    display: none;
-  }
-
-  .policy-pin-value,
-  .policy-pin-track {
-    display: block;
-  }
-
-  .policy-pin-name {
-    font-family: Cinzel, serif;
-    letter-spacing: 0.04em;
-  }
-
-  .policy-pin-value {
-    color: var(--parchment);
-    font-size: 0.85rem;
-  }
-
-  .policy-pin-track {
-    grid-column: 1 / -1;
-    position: relative;
-    height: 8px;
-    margin-top: 4px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  .policy-pin-mark {
-    position: absolute;
-    left: var(--pos);
-    top: 50%;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: currentColor;
-    transform: translate(-50%, -50%);
-  }
 }
 
 @media (max-width: 640px) {
@@ -1075,11 +1086,10 @@ button.secondary {
     height: 10px;
   }
 
-  .mp-card {
-    grid-template-columns: 1fr;
-  }
-
+  .reveal-btn,
+  .cabinet-toggle,
   .actions button {
+    min-width: 0;
     width: 100%;
   }
 }
