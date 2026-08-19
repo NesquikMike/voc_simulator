@@ -103,7 +103,8 @@ body::before {
   font-size: 0.95rem;
 }
 
-.screen[hidden] {
+.screen[hidden],
+[hidden] {
   display: none !important;
 }
 
@@ -243,21 +244,38 @@ button.secondary {
 .party-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  align-items: stretch;
   gap: 16px;
   margin-bottom: 22px;
 }
 
+.party-card,
 .party-card {
   background: rgba(7, 23, 18, 0.45);
   border: 1px solid rgba(241, 212, 120, 0.18);
   border-radius: 14px;
   padding: 16px;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
+.party-card.you,
 .party-card.you {
   outline: 2px solid var(--gold);
   outline-offset: 0;
+}
+
+.party-blurb {
+  flex: 1 1 auto;
+  margin: 0;
+}
+
+.party-standing {
+  margin: 10px 0 0;
+  font-size: 0.9rem;
+  color: var(--parchment-dark);
+  font-style: italic;
 }
 
 .party-name,
@@ -324,7 +342,9 @@ button.secondary {
 
 .gauge-wrap,
 .gauge-wrap {
-  margin-top: 12px;
+  margin-top: auto;
+  padding-top: 12px;
+  width: 100%;
 }
 
 .gauge-label {
@@ -418,28 +438,34 @@ button.secondary {
   margin: 10px 0 0;
 }
 
+.policy-block,
 .policy-block {
   margin-top: 8px;
 }
 
+.policy-copy,
 .policy-copy {
   text-align: center;
   margin: 0 0 14px;
 }
 
+.slider-row,
 .slider-row {
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: 14px;
   align-items: center;
+  margin-bottom: 4px;
 }
 
+.slider-row input[type="range"],
 .slider-row input[type="range"] {
   width: 100%;
   accent-color: var(--gold);
   height: 28px;
 }
 
+.policy-value,
 .policy-value {
   text-align: center;
   font-family: Cinzel, serif;
@@ -448,13 +474,24 @@ button.secondary {
   margin: 8px 0 0;
 }
 
+.pins-caption {
+  text-align: center;
+  margin: 18px 0 8px;
+  font-size: 0.88rem;
+  color: var(--parchment-dark);
+}
+
+.policy-pins,
 .policy-pins {
   display: flex;
   flex-direction: column;
   gap: 12px;
   margin: 0 0 16px;
+  pointer-events: none;
+  user-select: none;
 }
 
+.policy-pin,
 .policy-pin {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -463,16 +500,19 @@ button.secondary {
   color: var(--parchment-dark);
 }
 
+.policy-pin-name,
 .policy-pin-name {
   font-family: Cinzel, serif;
   letter-spacing: 0.04em;
 }
 
+.policy-pin-value,
 .policy-pin-value {
   color: var(--parchment);
   font-size: 0.85rem;
 }
 
+.policy-pin-track,
 .policy-pin-track {
   grid-column: 1 / -1;
   position: relative;
@@ -482,6 +522,7 @@ button.secondary {
   background: rgba(255, 255, 255, 0.1);
 }
 
+.policy-pin-mark,
 .policy-pin-mark {
   position: absolute;
   left: var(--pos);
@@ -493,14 +534,23 @@ button.secondary {
   transform: translate(-50%, -50%);
 }
 
+.policy-pin.workers,
 .policy-pin.workers { color: #f0a8a0; }
+.policy-pin.liberals,
 .policy-pin.liberals { color: #e6c86a; }
+.policy-pin.royalists,
 .policy-pin.royalists { color: #9eb4e8; }
+.policy-pin.greens,
 .policy-pin.greens { color: #7dce9a; }
+.policy-pin.country,
 .policy-pin.country { color: #d4b35a; }
+.policy-pin.traders,
 .policy-pin.traders { color: #6ed0c4; }
+.policy-pin.nationals,
 .policy-pin.nationals { color: #d080a8; }
+.policy-pin.civic,
 .policy-pin.civic { color: #7eb3d4; }
+.policy-pin.peace,
 .policy-pin.peace { color: #e0a06a; }
 
 .lean-grid {
@@ -1093,6 +1143,7 @@ button.pick-card:disabled:hover {
     grid-template-columns: 1fr;
   }
 
+  .slider-row,
   .slider-row {
     grid-template-columns: 1fr 1fr;
     grid-template-areas:
@@ -1110,6 +1161,7 @@ button.pick-card:disabled:hover {
     text-align: right;
   }
 
+  .slider-row input[type="range"],
   .slider-row input[type="range"] {
     grid-area: slider;
   }

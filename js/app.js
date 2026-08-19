@@ -22,7 +22,6 @@
   let jobsCabinetOpen = false;
   let backbenchersOpen = false;
   let reshuffleOpen = false;
-  let jobsPartiesOpen = false;
   const WHIP_LIST_SHORT = 5;
 
   function showScreen(name) {
@@ -59,7 +58,7 @@
   function popularityChip() {
     return (
       '<span class="posts-chip">PM standing ' +
-      VocGame.getPmPopularity() +
+      VocGame.getPmStanding() +
       "</span>"
     );
   }
@@ -217,6 +216,82 @@
     );
   }
 
+  function leaderStandingCopy(party, government) {
+    const score = Math.round(
+      party.leaderStanding != null ? party.leaderStanding : 50
+    );
+    const leader = party.leader;
+    const who = leader ? leader.name : "the leader";
+    if (party === government) {
+      if (score >= 72) return "The party is still broadly behind you.";
+      if (score >= 55) {
+        return "Most of the party will still have you, with a few grumbles.";
+      }
+      if (score >= 42) {
+        return "Your standing with the party is mixed; the centre is unconvinced.";
+      }
+      if (score >= 28) return "The party is restive. Your standing is poor.";
+      return "The party has largely gone off you.";
+    }
+    if (score >= 72) return "The party is still broadly behind " + who + ".";
+    if (score >= 55) {
+      return "Most of the party will still have " + who + ", with a few grumbles.";
+    }
+    if (score >= 42) {
+      return "Support for " + who + " is mixed; the centre of the party is unconvinced.";
+    }
+    if (score >= 28) {
+      return "The party is restive. " + who + "'s standing is poor.";
+    }
+    return "The party has largely gone off " + who + ".";
+  }
+
+  function renderPartyCards(parties, government) {
+    return (
+      '<div class="party-grid">' +
+      parties
+        .map(function (party) {
+          const slug = VocGame.partySlug(party.name);
+          const you = party === government ? " you" : "";
+          const median = party.getMedianMpPos();
+          return (
+            '<article class="party-card' +
+            you +
+            '">' +
+            '<p class="party-name"><span class="swatch ' +
+            slug +
+            '"></span>' +
+            party.name +
+            "</p>" +
+            '<div class="role-tag ' +
+            slug +
+            '">' +
+            roleFor(party) +
+            "</div>" +
+            '<p class="party-blurb">The ' +
+            party.name +
+            " " +
+            party.possessive +
+            " " +
+            party.numMps +
+            " MPs. Our reports indicate that a policy of " +
+            VocGame.formatBudget(median) +
+            " is most popular with " +
+            party.name +
+            " MPs.</p>" +
+            '<p class="party-standing">' +
+            leaderStandingCopy(party, government) +
+            "</p>" +
+            '<div class="gauge-wrap"><div class="gauge-label"><span>Expansion</span><span>Cuts</span></div>' +
+            numberLine(median) +
+            "</div></article>"
+          );
+        })
+        .join("") +
+      "</div>"
+    );
+  }
+
   function renderDashboard(mountIds, opts) {
     const parties = VocGame.getParties()
       .slice()
@@ -239,59 +314,10 @@
       govLine +
       "</p>";
 
-    const partyCards =
-      '<div class="party-grid">' +
-      parties
-        .map(function (party) {
-          const slug = VocGame.partySlug(party.name);
-          const you = party === government ? " you" : "";
-          const median = party.getMedianMpPos();
-          return (
-            '<article class="party-card' +
-            you +
-            '">' +
-            '<p class="party-name"><span class="swatch ' +
-            slug +
-            '"></span>' +
-            party.name +
-            "</p>" +
-            '<div class="role-tag ' +
-            slug +
-            '">' +
-            roleFor(party) +
-            "</div>" +
-            "<p>The " +
-            party.name +
-            " " +
-            party.possessive +
-            " " +
-            party.numMps +
-            " MPs. Our reports indicate that a policy of " +
-            VocGame.formatBudget(median) +
-            " is most popular with " +
-            party.name +
-            " MPs.</p>" +
-            '<div class="gauge-wrap"><div class="gauge-label"><span>Expansion</span><span>Cuts</span></div>' +
-            numberLine(median) +
-            "</div></article>"
-          );
-        })
-        .join("") +
-      "</div>";
-
     const partyBlock =
-      opts && opts.collapseParties
-        ? '<div class="party-positions-wrap"><div class="reveal-head">' +
-          '<h3 class="whip-list-title">Party positions</h3>' +
-          '<button type="button" class="reveal-btn secondary party-toggle">' +
-          (jobsPartiesOpen ? "Hide party positions" : "Show party positions") +
-          "</button></div>" +
-          '<div class="party-grid-body"' +
-          (jobsPartiesOpen ? "" : " hidden") +
-          ">" +
-          partyCards +
-          "</div></div>"
-        : partyCards;
+      opts && opts.skipParties
+        ? ""
+        : renderPartyCards(parties, government);
 
     const html =
       (opts && opts.showTurns
@@ -319,21 +345,6 @@
       const el = $(id);
       el.innerHTML = html;
       bindCabinetToggle(el);
-      bindPartyPositionsToggle(el);
-    });
-  }
-
-  function bindPartyPositionsToggle(root) {
-    if (!root) return;
-    const btn = root.querySelector(".party-toggle");
-    const body = root.querySelector(".party-grid-body");
-    if (!btn || !body) return;
-    btn.addEventListener("click", function () {
-      jobsPartiesOpen = !jobsPartiesOpen;
-      body.hidden = !jobsPartiesOpen;
-      btn.textContent = jobsPartiesOpen
-        ? "Hide party positions"
-        : "Show party positions";
     });
   }
 
@@ -494,7 +505,6 @@
     jobsCabinetOpen = false;
     backbenchersOpen = false;
     reshuffleOpen = false;
-    jobsPartiesOpen = false;
     renderDashboard(["info-dashboard"], { showTurns: false, showCabinet: true });
     showScreen("info");
   }
@@ -506,6 +516,7 @@
     renderDashboard(["proposal-dashboard"], {
       showTurns: true,
       showChamber: false,
+      skipParties: true,
     });
     $("policy-slider").value = String(currentProp);
     updateBudgetReadout(currentProp);
@@ -696,11 +707,9 @@
 
   function openJobs() {
     currentProp = Number($("policy-slider").value);
-    jobsPartiesOpen = false;
     renderDashboard(["jobs-dashboard"], {
       showTurns: true,
       showChamber: false,
-      collapseParties: true,
     });
     refreshWhipBox();
     $("cabinet-mount").innerHTML = renderCabinetCards({

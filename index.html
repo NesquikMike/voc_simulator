@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/styles.css?v=9" />
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%23164a3a' width='64' height='64' rx='10'/%3E%3Cpath fill='%23d4af37' d='M18 12h28v6H18zm4 8h20v4H22zm-2 8h8v24h-8zm18 0h8v24h-8zm-10 6h8v18h-8z'/%3E%3C/svg%3E"
@@ -33,11 +33,11 @@
       </header>
 
       <section id="screen-start" class="screen panel panel-parchment">
-        <p class="lede">Be the Prime Minister of Albrion. Survive a confidence vote on your NHS cuts.</p>
+        <p class="lede">Be the Prime Minister of Albrion. Survive a confidence vote on your NHS budget amendments.</p>
         <div class="instructions">
           <p>
             You are Prime Minister of the Kingdom of Albrion. Parliament will
-            divide on your proposed cuts to the NHS. Lose the
+            divide on your proposed amendments to the NHS budget. Lose the
             division and the government falls. This is usually a hung or
             knife-edge House: table your own party’s preferred settlement and
             you will still lose rebels, and still need votes from elsewhere.
@@ -72,13 +72,14 @@
         <div id="proposal-dashboard"></div>
         <div class="policy-block">
           <p class="policy-copy">Set this year’s NHS settlement. Expansion to the left, cuts to the right.</p>
-          <div class="policy-pins" id="policy-pins"></div>
           <div class="slider-row">
             <span class="slider-label slider-label-left">Expansion</span>
             <input id="policy-slider" type="range" min="0" max="100" value="50" />
             <span class="slider-label slider-label-right">Cuts</span>
           </div>
           <p class="policy-value" id="policy-value">a freeze — Standstill</p>
+          <p class="pins-caption">Where each party stands.</p>
+          <div class="policy-pins" id="policy-pins"></div>
           <div class="lean-grid" id="proposal-lean"></div>
         </div>
         <div class="actions">
@@ -213,8 +214,8 @@
       <p class="footer-note">Order, order. The question is the NHS settlement. 250 ayes carry the House.</p>
     </div>
 
-    <script src="js/data.js"></script>
-    <script src="js/game.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/data.js?v=9"></script>
+    <script src="js/game.js?v=9"></script>
+    <script src="js/app.js?v=9"></script>
   </body>
 </html>
