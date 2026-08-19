@@ -186,7 +186,32 @@
 
   function factionCohesion(n) {
     if (n <= 1) return 0;
-    return clamp(0.2 + 0.42 * (1 - (n - 2) / 70), 0.18, 0.58);
+    if (n <= 8) return 0.93;
+    if (n <= 14) return 0.9;
+    if (n <= 22) return 0.86;
+    if (n <= 35) return 0.82;
+    return 0.78;
+  }
+
+  function cacheFactionBlocPositions() {
+    const groups = {};
+    mps.forEach(function (mp) {
+      if (mp.factionId < 0) return;
+      if (!groups[mp.factionId]) groups[mp.factionId] = [];
+      groups[mp.factionId].push(mp);
+    });
+    Object.keys(groups).forEach(function (id) {
+      const members = groups[id].slice().sort(function (a, b) {
+        return a.position - b.position;
+      });
+      const median = members[Math.floor(members.length / 2)].position;
+      const leader = members[0].factionLeader;
+      const leaderPos = leader ? leader.position : median;
+      const bloc = 0.55 * leaderPos + 0.45 * median;
+      members.forEach(function (mp) {
+        mp.factionBlocPosition = bloc;
+      });
+    });
   }
 
   function whipDiscipline(mp) {
@@ -468,7 +493,14 @@
       if (this.party && !this.party.isMajor) {
         return this.minorSupportLogit(x);
       }
-      const dist = Math.abs(x - this.position);
+      const ownDist = Math.abs(x - this.position);
+      let dist = ownDist;
+      if (this.factionBlocPosition != null) {
+        const blocDist = Math.abs(x - this.factionBlocPosition);
+        const outlier = Math.abs(this.position - this.factionBlocPosition);
+        const ownShare = clamp(0.12 + outlier / 90, 0.12, 0.3);
+        dist = ownShare * ownDist + (1 - ownShare) * blocDist;
+      }
       let inner =
         -0.055 * dist * (1 - this.governing) -
         0.075 * dist * this.opposition +
@@ -478,10 +510,15 @@
         0.38 * (1 - this.governing) -
         1.48 * this.opposition +
         (this.cabinetPost ? 1.55 : 0) +
-        0.032 * this.factionMood +
-        0.012 * (pmStanding - 50) +
-        (this.sackedThisSitting ? -1.35 : 0) +
-        (this.factionHasNoMinister() ? -0.4 : 0);
+        0.055 * this.factionMood +
+        0.008 * (pmStanding - 50) * (1 - this.opposition) +
+        0.048 * (pmStanding - 50) * this.governing +
+        (this.sackedThisSitting ? -0.7 : 0) +
+        (this.governing && this.factionSize >= 5
+          ? this.factionHasNoMinister()
+            ? -0.95
+            : 0.15
+          : 0);
       return inner;
     }
 
@@ -522,22 +559,26 @@
         return p;
       }
       const disc = whipDiscipline(this);
-      p = mixTowardLeader(
-        p,
-        this,
-        this.factionLeader,
-        this.factionLeaderStanding,
-        factionCohesion(this.factionSize) * disc,
-        x
-      );
+      if (this.factionLeader && this.factionLeader !== this && this.factionSize > 1) {
+        let w = factionCohesion(this.factionSize);
+        if (this.factionLeaderStanding < 40) {
+          w *= this.factionLeaderStanding / 40;
+        }
+        const leaderP = sigmoid(this.factionLeader.supportLogit(x));
+        p = (1 - w) * p + w * leaderP;
+      }
       const party = this.party;
       if (party && party.leader) {
+        const standingBoost = this.governing
+          ? 0.2 +
+            0.32 * clamp((this.partyLeaderStanding - 42) / 58, 0, 1)
+          : 0.16;
         p = mixTowardLeader(
           p,
           this,
           party.leader,
           this.partyLeaderStanding,
-          0.16 * disc,
+          standingBoost * disc,
           x
         );
       }
@@ -858,6 +899,11 @@
     return true;
   }
 
+  function factionJoinScore(mp, leader) {
+    const policyFit = 100 - Math.abs(mp.position - leader.position);
+    return 0.72 * policyFit + 0.28 * getLike(mp, leader);
+  }
+
   function buildFactions() {
     let nextId = 0;
     partys.forEach(function (party) {
@@ -865,13 +911,22 @@
       members.forEach(function (mp) {
         mp._lead = leadershipScore(mp);
       });
-      members.sort(function (a, b) {
-        return b._lead - a._lead;
-      });
       const nLead = Math.min(members.length, nPotentialLeaders(members.length));
+      members.sort(function (a, b) {
+        return a.position - b.position;
+      });
       const factions = [];
+      const leaders = {};
       for (let i = 0; i < nLead; i++) {
-        const leader = members[i];
+        const start = Math.floor((i * members.length) / nLead);
+        const end = Math.floor(((i + 1) * members.length) / nLead);
+        const slice = members.slice(start, Math.max(end, start + 1));
+        slice.sort(function (a, b) {
+          return b._lead - a._lead;
+        });
+        const leader = slice[0];
+        if (leaders[leader.mpId]) continue;
+        leaders[leader.mpId] = true;
         const faction = {
           id: nextId,
           leader: leader,
@@ -884,9 +939,10 @@
         leader.factionName = faction.name;
         factions.push(faction);
       }
-      members.slice(nLead).forEach(function (mp) {
+      members.forEach(function (mp) {
+        if (leaders[mp.mpId]) return;
         const ranked = factions.slice().sort(function (fa, fb) {
-          return getLike(mp, fb.leader) - getLike(mp, fa.leader);
+          return factionJoinScore(mp, fb.leader) - factionJoinScore(mp, fa.leader);
         });
         let joined = null;
         for (let i = 0; i < ranked.length; i++) {
@@ -1254,6 +1310,13 @@
   }
 
   function applyFactionAnger(sacked, post) {
+    const stillIn = sacked.party.mpsInParty.some(function (mp) {
+      return (
+        mp !== sacked &&
+        mp.factionId === sacked.factionId &&
+        mp.cabinetPost
+      );
+    });
     const allies = mps.filter(function (mp) {
       return (
         mp !== sacked &&
@@ -1261,27 +1324,32 @@
         mp.factionId === sacked.factionId
       );
     });
-    const share = clamp(0.18 + 0.72 * (sacked.seniority / 100), 0.18, 0.9);
+    const share = stillIn
+      ? 0.18
+      : clamp(0.35 + 0.5 * (sacked.seniority / 100), 0.35, 0.85);
     const nAngry = Math.max(1, Math.round(allies.length * share));
-    const hit =
-      (post.prestige / 100) * (0.5 + 0.5 * (sacked.seniority / 100)) * 30;
+    const hit = stillIn
+      ? 5
+      : (post.prestige / 100) * (0.5 + 0.5 * (sacked.seniority / 100)) * 20;
     allies.sort(function (a, b) {
       return getLike(b, sacked) - getLike(a, sacked);
     });
     allies.slice(0, nAngry).forEach(function (mp) {
       mp.factionMood -= (getLike(mp, sacked) / 100) * hit;
     });
-    sacked.factionMood -= 10 + 16 * (sacked.seniority / 100);
+    sacked.factionMood -= stillIn ? 4 : 12 + 14 * (sacked.seniority / 100);
   }
 
-  function applyFactionBoost(promoted, post) {
+  function applyFactionBoost(promoted, post, wasExcluded) {
     const weight = post.prestige / 100;
     const stature = (0.5 * promoted.charisma + 0.5 * promoted.seniority) / 100;
+    const extra = wasExcluded ? 16 : 0;
     mps.forEach(function (mp) {
       if (mp.party !== promoted.party || mp.factionId !== promoted.factionId) return;
-      mp.factionMood += (getLike(mp, promoted) / 100) * weight * stature * 24;
+      mp.factionMood +=
+        (getLike(mp, promoted) / 100) * weight * stature * 48 + extra;
     });
-    promoted.factionMood += 8;
+    promoted.factionMood += 12 + (wasExcluded ? 10 : 0);
   }
 
   function maybeScandal(sacked, post) {
@@ -1333,6 +1401,7 @@
       return lastOfferResult;
     }
 
+    const wasExcluded = mp.factionHasNoMinister();
     incumbent.cabinetPost = null;
     incumbent.sackedThisSitting = true;
     incumbent.likeOfPm = clamp0to100(incumbent.likeOfPm - 18);
@@ -1345,7 +1414,7 @@
     mp.visibleLoyalty = clamp0to100(mp.visibleLoyalty + bump);
     mp.likeOfPm = clamp0to100(mp.likeOfPm + 10);
     refreshGrievance(mp);
-    applyFactionBoost(mp, post);
+    applyFactionBoost(mp, post, wasExcluded);
 
     lastOfferResult = {
       ok: true,
@@ -1473,10 +1542,67 @@
     syncPmStanding();
   }
 
+  function medianPosition(members) {
+    if (!members.length) return 50;
+    const vals = members
+      .map(function (mp) {
+        return mp.position;
+      })
+      .sort(function (a, b) {
+        return a - b;
+      });
+    return vals[Math.floor(vals.length / 2)];
+  }
+
+  function getUnconvincedWing(party) {
+    const members = party.mpsInParty || [];
+    if (members.length < 4) return null;
+    const groups = {};
+    members.forEach(function (mp) {
+      const id = mp.factionId;
+      if (id == null || id < 0) return;
+      if (!groups[id]) groups[id] = [];
+      groups[id].push(mp);
+    });
+    const factions = Object.keys(groups).map(function (id) {
+      const group = groups[id];
+      let sum = 0;
+      group.forEach(function (mp) {
+        sum += mp.partyLeaderStanding;
+      });
+      return {
+        size: group.length,
+        medianPos: medianPosition(group),
+        avgStanding: sum / group.length,
+      };
+    });
+    if (factions.length < 2) return null;
+    factions.sort(function (a, b) {
+      return a.avgStanding - b.avgStanding;
+    });
+    const worst = factions[0];
+    if (worst.size / members.length > 0.72) return null;
+    const partyMed = medianPosition(members);
+    const spread = Math.max(
+      8,
+      members.reduce(function (hi, mp) {
+        return Math.max(hi, mp.position);
+      }, 0) -
+        members.reduce(function (lo, mp) {
+          return Math.min(lo, mp.position);
+        }, 100)
+    );
+    const cut = Math.max(5, spread * 0.16);
+    if (worst.medianPos <= partyMed - cut) return "left";
+    if (worst.medianPos >= partyMed + cut) return "right";
+    return "centre";
+  }
+
   function finishParliamentSetup() {
     buildAffinity();
     overlayFeuds();
     buildFactions();
+    cacheFactionBlocPositions();
     assignLeaderStanding();
     assignCabinet();
   }
@@ -1577,6 +1703,7 @@
     getPartyLeaderStandingFor: function (party) {
       return party.leaderStanding;
     },
+    getUnconvincedWing,
     budgetBn,
     budgetBand,
     formatBudget,

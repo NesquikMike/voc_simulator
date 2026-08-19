@@ -22,6 +22,7 @@
   let jobsCabinetOpen = false;
   let backbenchersOpen = false;
   let reshuffleOpen = false;
+  let partiesOpen = false;
   const WHIP_LIST_SHORT = 5;
 
   function showScreen(name) {
@@ -216,19 +217,28 @@
     );
   }
 
+  function unconvincedBit(party) {
+    const wing = VocGame.getUnconvincedWing(party);
+    if (wing === "left") return "the left of the party is unconvinced";
+    if (wing === "right") return "the right of the party is unconvinced";
+    if (wing === "centre") return "the centre of the party is unconvinced";
+    return "the party is unconvinced";
+  }
+
   function leaderStandingCopy(party, government) {
     const score = Math.round(
       party.leaderStanding != null ? party.leaderStanding : 50
     );
     const leader = party.leader;
     const who = leader ? leader.name : "the leader";
+    const bit = unconvincedBit(party);
     if (party === government) {
       if (score >= 72) return "The party is still broadly behind you.";
       if (score >= 55) {
         return "Most of the party will still have you, with a few grumbles.";
       }
       if (score >= 42) {
-        return "Your standing with the party is mixed; the centre is unconvinced.";
+        return "Your standing with the party is mixed; " + bit + ".";
       }
       if (score >= 28) return "The party is restive. Your standing is poor.";
       return "The party has largely gone off you.";
@@ -238,7 +248,7 @@
       return "Most of the party will still have " + who + ", with a few grumbles.";
     }
     if (score >= 42) {
-      return "Support for " + who + " is mixed; the centre of the party is unconvinced.";
+      return "Support for " + who + " is mixed; " + bit + ".";
     }
     if (score >= 28) {
       return "The party is restive. " + who + "'s standing is poor.";
@@ -314,10 +324,22 @@
       govLine +
       "</p>";
 
+    const partyCards = renderPartyCards(parties, government);
     const partyBlock =
       opts && opts.skipParties
         ? ""
-        : renderPartyCards(parties, government);
+        : opts && opts.collapseParties
+          ? '<div class="party-positions-wrap"><div class="reveal-head">' +
+            '<h3 class="whip-list-title">Party briefing</h3>' +
+            '<button type="button" class="reveal-btn secondary party-toggle">' +
+            (partiesOpen ? "Hide party briefing" : "Show party briefing") +
+            "</button></div>" +
+            '<div class="party-grid-body"' +
+            (partiesOpen ? "" : " hidden") +
+            ">" +
+            partyCards +
+            "</div></div>"
+          : partyCards;
 
     const html =
       (opts && opts.showTurns
@@ -345,6 +367,21 @@
       const el = $(id);
       el.innerHTML = html;
       bindCabinetToggle(el);
+      bindPartyBriefingToggle(el);
+    });
+  }
+
+  function bindPartyBriefingToggle(root) {
+    if (!root) return;
+    const btn = root.querySelector(".party-toggle");
+    const body = root.querySelector(".party-grid-body");
+    if (!btn || !body) return;
+    btn.addEventListener("click", function () {
+      partiesOpen = !partiesOpen;
+      body.hidden = !partiesOpen;
+      btn.textContent = partiesOpen
+        ? "Hide party briefing"
+        : "Show party briefing";
     });
   }
 
@@ -513,10 +550,11 @@
     VocGame.beginTurn();
     selectedMp = null;
     selectedPostId = null;
+    partiesOpen = false;
     renderDashboard(["proposal-dashboard"], {
       showTurns: true,
       showChamber: false,
-      skipParties: true,
+      collapseParties: true,
     });
     $("policy-slider").value = String(currentProp);
     updateBudgetReadout(currentProp);
@@ -707,9 +745,11 @@
 
   function openJobs() {
     currentProp = Number($("policy-slider").value);
+    partiesOpen = false;
     renderDashboard(["jobs-dashboard"], {
       showTurns: true,
       showChamber: false,
+      collapseParties: true,
     });
     refreshWhipBox();
     $("cabinet-mount").innerHTML = renderCabinetCards({
